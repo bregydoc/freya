@@ -10,6 +10,7 @@ import (
 
 type Template struct {
 	ID        string    `json:"id"`
+	Name      string    `json:"name"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 	Filename  string    `json:"filename"`
@@ -26,6 +27,7 @@ func CreateNewTemplate(templateName string, data []byte) (*Template, error) {
 		ID:        id,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
+		Name:      templateName,
 	}
 	suffix, err := GetLittleHash()
 	if err != nil {
@@ -66,8 +68,19 @@ func CreateNewTemplate(templateName string, data []byte) (*Template, error) {
 	return newTemplate, nil
 }
 
-func GetTemplateByID(ID string) ([]byte, error) {
+func ReadTemplate(template *Template) ([]byte, error) {
 	bucketName := GlobalConfig.MinioStorageConfig.BucketName
+	obj, err := MinioClient.GetObject(bucketName, template.Filename, minio.GetObjectOptions{})
+
+	dataTemplate, err := ioutil.ReadAll(obj)
+	if err != nil {
+		return nil, err
+	}
+
+	return dataTemplate, nil
+}
+func GetTemplateByID(ID string) (*Template, error) {
+
 	template := new(Template)
 	err := ScribbleDriver.Read(GlobalConfig.DBConfig.TemplatesDBName, ID, template)
 	if err != nil {
@@ -78,14 +91,27 @@ func GetTemplateByID(ID string) ([]byte, error) {
 		return nil, errors.New("template not exist")
 	}
 
-	obj, err := MinioClient.GetObject(bucketName, template.Filename, minio.GetObjectOptions{})
+	return template, nil
 
-	dataTemplate, err := ioutil.ReadAll(obj)
+}
+
+func GetTemplateByName(name string) (*Template, error) {
+	ids, err := ScribbleDriver.ReadAll(GlobalConfig.DBConfig.TemplatesDBName)
 	if err != nil {
 		return nil, err
 	}
+	for _, id := range ids {
+		t := new(Template)
+		err = ScribbleDriver.Read(GlobalConfig.DBConfig.TemplatesDBName, id, t)
+		if err != nil {
+			return nil, err
+		}
+		if t.Name == name {
+			return t, nil
+		}
+	}
 
-	return dataTemplate, nil
+	return nil, errors.New("template not found")
 }
 
 func UpdateTemplateByID(ID string, templateData []byte) (*Template, error) {

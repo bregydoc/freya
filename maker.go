@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"github.com/k0kubun/pp"
 	"html/template"
+	"io/ioutil"
 	"log"
 	"net/smtp"
+	"os"
 )
 
 type Request struct {
@@ -23,8 +25,16 @@ func NewRequest(to []string, subject string) *Request {
 	}
 }
 
-func (r *Request) parseTemplate(fileName string, data interface{}) error {
-	t, err := template.ParseFiles(fileName)
+func (r *Request) parseTemplate(templateData []byte, data interface{}) error {
+	f, err := ioutil.TempFile(os.TempDir(), "freya")
+	if err != nil {
+		return err
+	}
+	_, err = f.Write(templateData)
+	if err != nil {
+		return err
+	}
+	t, err := template.ParseFiles(f.Name())
 	if err != nil {
 		return err
 	}
@@ -54,8 +64,8 @@ func (r *Request) sendMail() error {
 	return nil
 }
 
-func (r *Request) Send(templateName string, items interface{}) error {
-	err := r.parseTemplate(templateName, items)
+func (r *Request) Send(templateData []byte, items interface{}) error {
+	err := r.parseTemplate(templateData, items)
 	if err != nil {
 		log.Fatal(err)
 	}
