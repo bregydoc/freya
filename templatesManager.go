@@ -2,7 +2,9 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
+	"github.com/k0kubun/pp"
 	"github.com/minio/minio-go"
 	"io/ioutil"
 	"time"
@@ -96,13 +98,15 @@ func GetTemplateByID(ID string) (*Template, error) {
 }
 
 func GetTemplateByName(name string) (*Template, error) {
-	ids, err := ScribbleDriver.ReadAll(GlobalConfig.DBConfig.TemplatesDBName)
+	templates, err := ScribbleDriver.ReadAll(GlobalConfig.DBConfig.TemplatesDBName)
+	pp.Println(templates)
 	if err != nil {
 		return nil, err
 	}
-	for _, id := range ids {
+	for _, temp := range templates {
 		t := new(Template)
-		err = ScribbleDriver.Read(GlobalConfig.DBConfig.TemplatesDBName, id, t)
+		err = json.Unmarshal([]byte(temp), t)
+		//err = ScribbleDriver.Read(GlobalConfig.DBConfig.TemplatesDBName, id, t)
 		if err != nil {
 			return nil, err
 		}

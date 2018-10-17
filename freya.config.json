@@ -1,0 +1,34 @@
+{
+  "mime": "MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\n\n",
+  "server": "in-v3.mailjet.com",
+  "port": 587,
+  "email": "b8c41940c094a3740a1da69024cc1909",
+  "password": "e734bed22e02674434540c3249ffd0b6",
+  "meta_data": {
+    "from_name": "Freya",
+    "from_email": "hello@bombo.pe"
+  },
+  "db_config": {
+    "absolute_folder": "/Users/bregy/Documents/freya/udb",
+    "relative_folder": "./udb",
+
+    "plans_db_name": "plans",
+    "logger_db_name": "logger",
+    "templates_db_name": "templates"
+  },
+  "minio_storage_config": {
+    "endpoint": "127.0.0.1:9000",
+    "access_key_id": "QIBC36DH5IQB1B1OY7JX",
+    "secret_access_key": "7KCzR5LCxanmZtXLNgIBhzHOVLeSwFzm92vBqhpy",
+    "use_ssl": false,
+
+    "bucket_name": "freya",
+    "location": "us-east-1"
+  },
+  "credentials": [
+    {
+      "username": "bregymr",
+      "password": "malpartida1"
+    }
+  ]
+}

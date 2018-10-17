@@ -8,7 +8,7 @@ import (
 
 type StandardResponse struct {
 	Data  interface{} `json:"data"`
-	Error string      `json:"error"`
+	Error interface{} `json:"error"`
 }
 
 type SendEmailRequest struct {
@@ -123,4 +123,5 @@ func main() {
 
 	})
 
+	engine.Run(":3300")
 }

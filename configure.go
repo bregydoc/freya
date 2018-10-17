@@ -19,7 +19,7 @@ type FreyaConfig struct {
 
 	DBConfig DataBaseConfig `json:"db_config"`
 
-	MinioStorageConfig MinioConfig `json:"minio_config"`
+	MinioStorageConfig MinioConfig `json:"minio_storage_config"`
 
 	Credentials []*AdminCredentials `json:"credentials"`
 }
@@ -90,6 +90,8 @@ func init() {
 		panic(err)
 	}
 
+	log.Println("Scribble setup done ✔︎")
+
 	MinioClient, err = minio.New(
 		GlobalConfig.MinioStorageConfig.Endpoint,
 		GlobalConfig.MinioStorageConfig.AccessKeyID,
@@ -100,10 +102,12 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+	log.Println("Minio Server setup done ✔︎")
 
 	bucketName := GlobalConfig.MinioStorageConfig.BucketName
 
 	err = MinioClient.MakeBucket(bucketName, GlobalConfig.MinioStorageConfig.Location)
+
 	if err != nil {
 
 		exists, err := MinioClient.BucketExists(bucketName)
@@ -113,5 +117,7 @@ func init() {
 			log.Fatalln(err)
 		}
 	}
+
+	log.Println("Minio bucket created ✔︎")
 
 }

@@ -3,7 +3,6 @@ package main
 // TODO: Planning and Schedule WORK IN PROGRESS
 
 import (
-	"fmt"
 	"time"
 )
 
@@ -37,7 +36,8 @@ func init() {
 
 	go func() {
 		for t := range ticker.C {
-			fmt.Println("Tick at", t)
+			t.String()
+			//fmt.Println("Tick at", t)
 
 			// TODO: SYNCCCCCC!!!!
 
