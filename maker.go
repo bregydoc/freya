@@ -76,3 +76,13 @@ func (r *Request) Send(templateData []byte, items interface{}) error {
 	log.Printf("Email has been sent to %s\n", r.to)
 	return nil
 }
+
+func (r *Request) SendPlain(data []byte) error {
+	r.body = string(data)
+	if err := r.sendMail(); err != nil {
+		log.Printf("Failed to send the email to %s\n", r.to)
+		return err
+	}
+	log.Printf("Email has been sent to %s\n", r.to)
+	return nil
+}

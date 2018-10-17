@@ -1,8 +1,10 @@
 package main
 
 import (
+	"encoding/json"
 	"github.com/minio/minio-go"
 	"github.com/nanobox-io/golang-scribble"
+	"io/ioutil"
 	"log"
 )
 
@@ -18,6 +20,13 @@ type FreyaConfig struct {
 	DBConfig DataBaseConfig `json:"db_config"`
 
 	MinioStorageConfig MinioConfig `json:"minio_config"`
+
+	Credentials []*AdminCredentials `json:"credentials"`
+}
+
+type AdminCredentials struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
 }
 
 type SenderConfig struct {
@@ -50,12 +59,31 @@ var GlobalConfig *FreyaConfig
 
 var MinioClient *minio.Client
 
+func ReadConfig(filename string) *FreyaConfig {
+	configData, err := ioutil.ReadFile(filename)
+	if err != nil {
+		panic(err)
+	}
+
+	c := new(FreyaConfig)
+
+	err = json.Unmarshal(configData, c)
+	if err != nil {
+		panic(err)
+	}
+
+	return c
+}
+
 func init() {
 
+	log.Println("Executing init function...")
+
+	//
 	var err error
 
 	// TODO: Bregy, please fill the default config for Freya
-	GlobalConfig = &FreyaConfig{}
+	GlobalConfig = ReadConfig("./freya.config.json")
 
 	ScribbleDriver, err = scribble.New(GlobalConfig.DBConfig.AbsoluteFolder, nil)
 	if err != nil {

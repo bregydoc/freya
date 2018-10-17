@@ -18,3 +18,13 @@ func SendMailFromSavedTemplate(request *Request, templateName string, data inter
 
 	return nil
 }
+
+func FastSendFromSavedTemplate(to string, subject string, templateName string, data interface{}) error {
+	r := NewRequest([]string{to}, subject)
+	return SendMailFromSavedTemplate(r, templateName, data)
+}
+
+func FastSendPlainData(to string, subject string, body []byte) error {
+	r := NewRequest([]string{to}, subject)
+	return r.SendPlain(body)
+}

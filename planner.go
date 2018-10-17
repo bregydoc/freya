@@ -1,5 +1,7 @@
 package main
 
+// TODO: Planning and Schedule WORK IN PROGRESS
+
 import (
 	"fmt"
 	"time"
@@ -18,6 +20,11 @@ type Plan struct {
 	LaunchExactly time.Time `json:"launch_exactly"`
 
 	LastSyncCheck time.Time `json:"last_sync_check"`
+
+	To           []string    `json:"to"`
+	TemplateName string      `json:"template_name"`
+	StaticData   interface{} `json:"static_data"`
+	IsDynamic    bool        `json:"is_dynamic"`
 }
 
 type Planner struct {
