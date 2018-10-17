@@ -2,8 +2,8 @@
   "mime": "MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\n\n",
   "server": "in-v3.mailjet.com",
   "port": 587,
-  "email": "b8c41940c094a3740a1da69024cc1909",
-  "password": "e734bed22e02674434540c3249ffd0b6",
+  "email": "xxx",
+  "password": "yyy",
   "meta_data": {
     "from_name": "Freya",
     "from_email": "hello@bombo.pe"
