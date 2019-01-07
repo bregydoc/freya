@@ -2,12 +2,25 @@ version: '3'
 services:
   minio:
     image: "minio/minio"
-    command: "server /data"
+    restart: always
+    command: "server /freyio"
     environment:
       MINIO_ACCESS_KEY: "AKIAIOSFODNN7EXAMPLE"
       MINIO_SECRET_KEY: "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
     ports:
       - "9000:9000"
+    volumes:
+      - freyio:/data
 
   freya:
-    build:
+    depends_on:
+      - "minio"
+    restart: always
+    build: .
+    links:
+      - minio
+    ports:
+      - "10000:10000"
+
+volumes:
+  freyio:

@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"github.com/k0kubun/pp"
 	"github.com/minio/minio-go"
 	"io/ioutil"
 	"time"
@@ -99,7 +98,7 @@ func GetTemplateByID(ID string) (*Template, error) {
 
 func GetTemplateByName(name string) (*Template, error) {
 	templates, err := ScribbleDriver.ReadAll(GlobalConfig.DBConfig.TemplatesDBName)
-	pp.Println(templates)
+
 	if err != nil {
 		return nil, err
 	}

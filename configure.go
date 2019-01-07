@@ -96,13 +96,13 @@ func init() {
 	var err error
 
 	// TODO: Bregy, please fill the default config for Freya
-	if _, err := os.Stat("./freyabuf.config.json"); os.IsNotExist(err) {
+	if _, err := os.Stat("./freya.config.json"); os.IsNotExist(err) {
 		GlobalConfig = GetDefaultConfig()
 	} else {
-		GlobalConfig = ReadConfig("./freyabuf.config.json")
+		GlobalConfig = ReadConfig("./freya.config.json")
 	}
 
-	ScribbleDriver, err = scribble.New(GlobalConfig.DBConfig.AbsoluteFolder, nil)
+	ScribbleDriver, err = scribble.New(GlobalConfig.DBConfig.RelativeFolder, nil)
 	if err != nil {
 		panic(err)
 	}
@@ -119,6 +119,7 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+
 	log.Println("Minio Server setup done ✔︎")
 
 	bucketName := GlobalConfig.MinioStorageConfig.BucketName

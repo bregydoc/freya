@@ -18,8 +18,8 @@
   },
   "minio_storage_config": {
     "endpoint": "127.0.0.1:9000",
-    "access_key_id": "QIBC36DH5IQB1B1OY7JX",
-    "secret_access_key": "7KCzR5LCxanmZtXLNgIBhzHOVLeSwFzm92vBqhpy",
+    "access_key_id": "AKIAIOSFODNN7EXAMPLE",
+    "secret_access_key": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
     "use_ssl": false,
 
     "bucket_name": "freya",

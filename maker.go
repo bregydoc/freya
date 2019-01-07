@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"fmt"
-	"github.com/k0kubun/pp"
 	"html/template"
 	"io/ioutil"
 	"log"
@@ -58,7 +57,7 @@ func (r *Request) sendMail() error {
 	auth := smtp.PlainAuth("", GlobalConfig.Email, GlobalConfig.Password, GlobalConfig.Server)
 
 	if err := smtp.SendMail(SMTPClient, auth, GlobalConfig.Email, r.to, []byte(body)); err != nil {
-		pp.Println("ERROR", err.Error())
+
 		return err
 	}
 	return nil

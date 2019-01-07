@@ -1,5 +1,5 @@
 FROM golang:1.11
-WORKDIR /go/src/app
+WORKDIR /go/src/freya
 COPY . .
 
 RUN go get -d -v ./...
