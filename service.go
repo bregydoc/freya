@@ -1,127 +1,73 @@
 package main
 
 import (
-	"github.com/gin-gonic/gin"
-	"io/ioutil"
-	"net/http"
+	"context"
+
+	"fmt"
+	"github.com/bregydoc/freya/freyabuf"
+	"google.golang.org/grpc"
+	"log"
+	"net"
 )
 
-type StandardResponse struct {
-	Data  interface{} `json:"data"`
-	Error interface{} `json:"error"`
+type FreyaService struct{}
+
+func (s *FreyaService) SendEmail(ctx context.Context, params *freyabuf.SendEmailParams) (*freyabuf.SendEmailResponse, error) {
+	to := make([]string, 0) // TODO: Make a priority queque
+	for _, i := range params.To {
+		to = append(to, i)
+	}
+
+	emailRequest := NewRequest(to, params.Subject)
+
+	err := SendMailFromSavedTemplate(emailRequest, params.TemplateName, params.TemplateFill)
+	if err != nil {
+		return &freyabuf.SendEmailResponse{
+			Error: &freyabuf.Error{
+				ErrorCode: 1,
+				Message:   err.Error(),
+			},
+		}, err
+	}
+
+	return &freyabuf.SendEmailResponse{
+		Sended: true,
+		Error:  nil,
+	}, nil
+
 }
 
-type SendEmailRequest struct {
-	To      string `json:"to"`
-	Subject string `json:"subject"`
+func (s *FreyaService) SaveNewTemplate(ctx context.Context, templateData *freyabuf.TemplateData) (*freyabuf.SaveTemplateResponse, error) {
+	_, err := CreateNewTemplate(templateData.TemplateName, templateData.Data)
+	if err != nil {
+		return &freyabuf.SaveTemplateResponse{
+			Saved: false,
+		}, err
+	}
 
-	TemplateName    string      `json:"template_name"`
-	DataForTemplate interface{} `json:"data_for_template"`
+	return &freyabuf.SaveTemplateResponse{
+		Saved: true,
+	}, nil
+}
+
+func (s *FreyaService) UpdateTemplate(ctx context.Context, templateData *freyabuf.TemplateData) (*freyabuf.UpdateTemplateResponse, error) {
+	panic("unimplemented")
 }
 
 func main() {
-	engine := gin.Default()
-	engine.GET("/login", func(c *gin.Context) {
-		credentials := new(AdminCredentials)
+	port := 10000
+	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
+	if err != nil {
+		log.Fatalf("failed to listen: %v", err)
+	}
+	grpcServer := grpc.NewServer()
 
-		c.BindJSON(credentials)
+	freyabuf.RegisterFreyaServer(grpcServer, &FreyaService{})
 
-		credentialIsCorrect := false
-		for _, cr := range GlobalConfig.Credentials {
-			if cr.Username == credentials.Username {
-				if cr.Password == credentials.Password {
-					credentialIsCorrect = true
-				}
-			}
-		}
+	log.Printf("Listening on :%d\n", port)
+	err = grpcServer.Serve(lis)
+	if err != nil {
+		log.Fatalf("failed on serve: %v", err)
+	}
 
-		if !credentialIsCorrect {
-			c.JSON(http.StatusUnauthorized, StandardResponse{
-				Error: "Invalid credentials",
-			})
-			return
-		}
-
-		c.JSON(http.StatusOK, StandardResponse{
-			Data: "ok, you're the boss",
-		})
-
-	})
-
-	engine.Use(gin.BasicAuth(gin.Accounts{
-		"bregymr": "malpartida1",
-	}))
-
-	engine.POST("/upload-new-template", func(c *gin.Context) {
-		template, err := c.FormFile("template")
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, StandardResponse{
-				Error: err.Error(),
-			})
-			return
-		}
-		templateName := c.PostForm("template_name")
-
-		if templateName == "" {
-			c.JSON(http.StatusInternalServerError, StandardResponse{
-				Error: "please, put the name of your template",
-			})
-			return
-		}
-
-		fTemplate, err := template.Open()
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, StandardResponse{
-				Error: err.Error(),
-			})
-			return
-		}
-
-		data, err := ioutil.ReadAll(fTemplate)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, StandardResponse{
-				Error: err.Error(),
-			})
-			return
-		}
-
-		completedTemplate, err := CreateNewTemplate(templateName, data)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, StandardResponse{
-				Error: err.Error(),
-			})
-			return
-		}
-
-		c.JSON(http.StatusOK, StandardResponse{
-			Data:  completedTemplate,
-			Error: nil,
-		})
-
-	})
-
-	engine.POST("/send-email", func(c *gin.Context) {
-		request := new(SendEmailRequest)
-
-		c.BindJSON(request)
-
-		emailRequest := NewRequest([]string{request.To}, request.Subject)
-
-		err := SendMailFromSavedTemplate(emailRequest, request.TemplateName, request.DataForTemplate)
-
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, StandardResponse{
-				Error: err.Error(),
-			})
-			return
-		}
-
-		c.JSON(http.StatusOK, StandardResponse{
-			Data:  "Email sent, boss!",
-			Error: nil,
-		})
-
-	})
-
-	engine.Run(":3300")
 }

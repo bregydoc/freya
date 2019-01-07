@@ -6,6 +6,7 @@ import (
 	"github.com/nanobox-io/golang-scribble"
 	"io/ioutil"
 	"log"
+	"os"
 )
 
 type FreyaConfig struct {
@@ -75,6 +76,18 @@ func ReadConfig(filename string) *FreyaConfig {
 	return c
 }
 
+func GetDefaultConfig() *FreyaConfig {
+	c := new(FreyaConfig)
+
+	err := json.Unmarshal([]byte(defaultConfigContent), c)
+	if err != nil {
+		panic(err)
+	}
+
+	return c
+
+}
+
 func init() {
 
 	log.Println("Executing init function...")
@@ -83,7 +96,11 @@ func init() {
 	var err error
 
 	// TODO: Bregy, please fill the default config for Freya
-	GlobalConfig = ReadConfig("./freya.config.json")
+	if _, err := os.Stat("./freyabuf.config.json"); os.IsNotExist(err) {
+		GlobalConfig = GetDefaultConfig()
+	} else {
+		GlobalConfig = ReadConfig("./freyabuf.config.json")
+	}
 
 	ScribbleDriver, err = scribble.New(GlobalConfig.DBConfig.AbsoluteFolder, nil)
 	if err != nil {

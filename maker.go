@@ -26,7 +26,7 @@ func NewRequest(to []string, subject string) *Request {
 }
 
 func (r *Request) parseTemplate(templateData []byte, data interface{}) error {
-	f, err := ioutil.TempFile(os.TempDir(), "freya")
+	f, err := ioutil.TempFile(os.TempDir(), "freyabuf")
 	if err != nil {
 		return err
 	}
