@@ -1,6 +1,16 @@
 version: '3'
 services:
+  freya:
+    restart: always
+    build: .
+    ports:
+      - "10000:10000"
+    links:
+      - minio
+
   minio:
+    expose:
+      - "9000"
     image: "minio/minio"
     restart: always
     command: "server /freyio"
@@ -11,16 +21,6 @@ services:
       - "9000:9000"
     volumes:
       - freyio:/data
-
-  freya:
-    depends_on:
-      - "minio"
-    restart: always
-    build: .
-    links:
-      - minio
-    ports:
-      - "10000:10000"
 
 volumes:
   freyio:

@@ -9,7 +9,6 @@
     "from_email": "hello@bombo.pe"
   },
   "db_config": {
-    "absolute_folder": "/Users/bregy/Documents/freya/udb",
     "relative_folder": "./udb",
 
     "plans_db_name": "plans",
@@ -17,7 +16,7 @@
     "templates_db_name": "templates"
   },
   "minio_storage_config": {
-    "endpoint": "127.0.0.1:9000",
+    "endpoint": "minio:9000",
     "access_key_id": "AKIAIOSFODNN7EXAMPLE",
     "secret_access_key": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
     "use_ssl": false,

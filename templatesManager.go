@@ -96,6 +96,26 @@ func GetTemplateByID(ID string) (*Template, error) {
 
 }
 
+func GetAllTemplates() ([]*Template, error) {
+	templates := make([]*Template, 0)
+
+	allTemplatesID, err := ScribbleDriver.ReadAll(GlobalConfig.DBConfig.TemplatesDBName)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, id := range allTemplatesID {
+		template, err := GetTemplateByID(id)
+		if err != nil {
+			return nil, err
+		}
+
+		templates = append(templates, template)
+	}
+
+	return templates, nil
+}
+
 func GetTemplateByName(name string) (*Template, error) {
 	templates, err := ScribbleDriver.ReadAll(GlobalConfig.DBConfig.TemplatesDBName)
 

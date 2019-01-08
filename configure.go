@@ -98,8 +98,10 @@ func init() {
 	// TODO: Bregy, please fill the default config for Freya
 	if _, err := os.Stat("./freya.config.json"); os.IsNotExist(err) {
 		GlobalConfig = GetDefaultConfig()
+		log.Println("Loading default config")
 	} else {
 		GlobalConfig = ReadConfig("./freya.config.json")
+		log.Println("Loading freya.config.json config file")
 	}
 
 	ScribbleDriver, err = scribble.New(GlobalConfig.DBConfig.RelativeFolder, nil)
@@ -130,7 +132,7 @@ func init() {
 
 		exists, err := MinioClient.BucketExists(bucketName)
 		if err == nil && exists {
-			log.Printf("We already own %s\n", bucketName)
+			log.Printf("We already own %s bucket \n", bucketName)
 		} else {
 			log.Fatalln(err)
 		}
