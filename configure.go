@@ -104,6 +104,8 @@ func init() {
 		log.Println("Loading freya.config.json config file")
 	}
 
+	GlobalConfig = FillConfigWithDefaults(GlobalConfig)
+
 	ScribbleDriver, err = scribble.New(GlobalConfig.DBConfig.RelativeFolder, nil)
 	if err != nil {
 		panic(err)
