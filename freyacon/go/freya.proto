@@ -1,0 +1,53 @@
+syntax = "proto3";
+
+service Freya {
+    rpc SaveNewTemplate(TemplateData) returns (SaveTemplateResponse) {}
+    rpc UpdateTemplate(TemplateData) returns (UpdateTemplateResponse) {}
+    rpc SendEmail(SendEmailParams) returns (SendEmailResponse) {}
+    rpc GetAllTemplates(Void) returns (TemplatesList) {}
+}
+
+message Void {
+
+}
+
+message TemplatesList {
+    map<string, TemplateFields> templates = 1;
+}
+
+message TemplateFields {
+    map<string, string> fields = 1;
+}
+
+message SendEmailParams {
+    map<int32, string> to = 1; // With Priority
+    string subject = 2;
+    string templateName = 3;
+    map <string, string> templateFill = 4;
+}
+
+message SendEmailResponse {
+    bool send = 1;
+    Error error = 2;
+}
+
+message TemplateData {
+    string templateName = 1;
+    bytes data = 2;
+}
+
+message SaveTemplateResponse {
+    bool saved = 1;
+    string templateName = 2;
+}
+
+message UpdateTemplateResponse {
+    bool updated = 1;
+    TemplateData template = 2;
+    Error error = 3;
+}
+
+message Error {
+    int32 errorCode = 1;
+    string message = 2;
+}
