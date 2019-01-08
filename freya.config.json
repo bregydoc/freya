@@ -6,5 +6,8 @@
   "meta_data": {
     "from_name": "Freya",
     "from_email": "hello@bombo.pe"
+  },
+  "minio_storage_config": {
+    "endpoint": "minio:9000"
   }
 }

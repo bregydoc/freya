@@ -1,4 +1,4 @@
-package example
+package examples
 
 import (
 	"context"
@@ -20,6 +20,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
 	resp, err := freyaClient.SaveNewTemplate(context.Background(), &freya.TemplateData{
 		TemplateName: "welcome",
 		Data:         welcomeData,

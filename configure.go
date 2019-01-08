@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"github.com/k0kubun/pp"
 	"github.com/minio/minio-go"
 	"github.com/nanobox-io/golang-scribble"
 	"io/ioutil"
@@ -105,6 +106,8 @@ func init() {
 	}
 
 	GlobalConfig = FillConfigWithDefaults(GlobalConfig)
+
+	pp.Println(GlobalConfig)
 
 	ScribbleDriver, err = scribble.New(GlobalConfig.DBConfig.RelativeFolder, nil)
 	if err != nil {
