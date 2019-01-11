@@ -6,7 +6,7 @@ import (
 	"log"
 )
 
-type FreyaRepository interface {
+type Repository interface {
 	RegisterTemplate(t *Template) (*Template, error)
 	UpdateTemplate(t *Template) (*Template, error)
 	GetTemplateByName(name string, withData ...bool) (*Template, error)
@@ -14,16 +14,19 @@ type FreyaRepository interface {
 	GetAllTemplates(withData ...bool) ([]*Template, error)
 
 	SendMail(templateName string, params interface{}, subject string, to []string) error
+	SendSMS(templateName string, params interface{}, to *PhoneNumber) error
 }
 
 type Freya struct {
-	Config  *FreyaConfig
-	Db      *scribble.Driver
-	Storage *minio.Client
-	Gen     *FreyaIDGenerator
+	Config      *FreyaConfig
+	Db          *scribble.Driver
+	Storage     *minio.Client
+	Gen         *FreyaIDGenerator
+	SMSBackend  SMSBackend
+	MailBackend MailBackend
 }
 
-func NewFreya(config *FreyaConfig) (*Freya, error) {
+func NewFreya(config *FreyaConfig, mailBackend MailBackend, smsBackend SMSBackend) (*Freya, error) {
 	config = FillConfigWithDefaults(config)
 	f := new(Freya)
 	f.Config = config
@@ -55,17 +58,18 @@ func NewFreya(config *FreyaConfig) (*Freya, error) {
 	err = f.Storage.MakeBucket(bucketName, f.Config.Minio.Location)
 
 	if err != nil {
-
 		exists, err := f.Storage.BucketExists(bucketName)
 		if err == nil && exists {
 			log.Printf("%s bucket exist\n", bucketName)
 		} else {
-			log.Fatalln(err)
+			return nil, err
 		}
 	}
 
 	log.Println("Minio bucket created ✔︎")
 
+	f.SMSBackend = smsBackend
+	f.MailBackend = mailBackend
 	return f, nil
 
 }

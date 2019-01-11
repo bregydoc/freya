@@ -3,9 +3,8 @@ package main
 import (
 	"context"
 	"github.com/bregydoc/freya/freyacon/go"
+	"github.com/k0kubun/pp"
 	"google.golang.org/grpc"
-	"io/ioutil"
-	"log"
 )
 
 func main() {
@@ -16,22 +15,18 @@ func main() {
 	}
 
 	freyaClient := freya.NewFreyaClient(client)
-	welcomeData, err := ioutil.ReadFile("/Users/macBook/Documents/welcome_template.html.txt")
-	if err != nil {
-		panic(err)
-	}
 
-	resp, err := freyaClient.SaveNewTemplate(context.Background(), &freya.TemplateData{
+	in := &freya.SendEmailParams{
+		Subject:      "Hello",
+		TemplateFill: map[string]string{},
 		TemplateName: "welcome_mail",
-		Data:         welcomeData,
-	})
+		To:           map[int32]string{0: "bregy.malpartida@utec.edu.pe"},
+	}
 
+	res, err := freyaClient.SendEmail(context.Background(), in)
 	if err != nil {
 		panic(err)
 	}
 
-	if resp.Saved {
-		log.Println("Template saved")
-	}
-
+	pp.Println(res)
 }

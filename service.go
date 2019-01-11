@@ -3,18 +3,16 @@ package main
 import (
 	"bytes"
 	"context"
-	"fmt"
-	"github.com/k0kubun/pp"
 	"io/ioutil"
 
 	"github.com/bregydoc/freya/freyacon/go"
 )
 
-type FreyaService struct {
-	repo FreyaRepository
+type Service struct {
+	repo Repository
 }
 
-func (s *FreyaService) SendEmail(ctx context.Context, params *freya.SendEmailParams) (*freya.SendEmailResponse, error) {
+func (s *Service) SendEmail(ctx context.Context, params *freya.SendEmailParams) (*freya.SendEmailResponse, error) {
 	to := make([]string, 0) // TODO: Make a priority queque
 	for _, i := range params.To {
 		to = append(to, i)
@@ -38,10 +36,10 @@ func (s *FreyaService) SendEmail(ctx context.Context, params *freya.SendEmailPar
 
 }
 
-func (s *FreyaService) SaveNewTemplate(ctx context.Context, templateData *freya.TemplateData) (*freya.SaveTemplateResponse, error) {
+func (s *Service) SaveNewTemplate(ctx context.Context, templateData *freya.TemplateData) (*freya.SaveTemplateResponse, error) {
 	template := &Template{
 		Name: templateData.TemplateName,
-		Data: bytes.NewBuffer(templateData.Data),
+		Data: bytes.NewReader(templateData.Data),
 	}
 
 	t, err := s.repo.RegisterTemplate(template)
@@ -58,14 +56,15 @@ func (s *FreyaService) SaveNewTemplate(ctx context.Context, templateData *freya.
 	}, nil
 }
 
-func (s *FreyaService) UpdateTemplate(ctx context.Context, templateData *freya.TemplateData) (*freya.UpdateTemplateResponse, error) {
+func (s *Service) UpdateTemplate(ctx context.Context, templateData *freya.TemplateData) (*freya.UpdateTemplateResponse, error) {
+
 	template := &Template{
 		Name: templateData.TemplateName,
-		Data: bytes.NewBuffer(templateData.Data),
+		Data: bytes.NewReader(templateData.Data),
 	}
-	pp.Println(template)
+
 	t, err := s.repo.UpdateTemplate(template)
-	fmt.Println(err)
+
 	if err != nil {
 		return &freya.UpdateTemplateResponse{
 			Template: nil,
@@ -88,7 +87,7 @@ func (s *FreyaService) UpdateTemplate(ctx context.Context, templateData *freya.T
 	}, nil
 }
 
-func (s *FreyaService) GetAllTemplates(ctx context.Context, void *freya.Void) (*freya.TemplatesList, error) {
+func (s *Service) GetAllTemplates(ctx context.Context, void *freya.Void) (*freya.TemplatesList, error) {
 
 	templates, err := s.repo.GetAllTemplates(true)
 

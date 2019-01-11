@@ -1,11 +1,10 @@
 package main
 
 import (
-	"bytes"
 	"encoding/json"
-	"fmt"
 	"github.com/minio/minio-go"
 	"io"
+	"io/ioutil"
 	"log"
 	"time"
 )
@@ -34,10 +33,11 @@ func (f *Freya) RegisterTemplate(t *Template) (*Template, error) {
 
 	filename := t.Name + "_" + hash + ".html"
 
-	length, err := t.Data.Read(nil)
+	data, err := ioutil.ReadAll(t.Data)
 	if err != nil {
 		return nil, err
 	}
+	length := len(data)
 
 	bucketName := f.Config.Minio.BucketName
 
@@ -74,27 +74,30 @@ func (f *Freya) RegisterTemplate(t *Template) (*Template, error) {
 }
 
 func (f *Freya) UpdateTemplate(t *Template) (*Template, error) {
-	t.UpdatedAt = time.Now()
-	fmt.Println("Begin...")
-	t, err := f.GetTemplateByName(t.Name)
+
+	oldT, err := f.GetTemplateByName(t.Name)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("0, ", err)
+
+	t.ID = oldT.ID
+	t.Filename = oldT.Filename
+	t.Name = oldT.Name
+	t.CreatedAt = oldT.CreatedAt
+	t.Params = oldT.Params
+	t.UpdatedAt = time.Now()
+
 	err = f.Db.Write(f.Config.DB.TemplatesDBName, t.ID, t)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("1, ", err)
 
-	buf := new(bytes.Buffer)
-	length, err := buf.ReadFrom(t.Data)
-
+	data, err := ioutil.ReadAll(t.Data)
 	if err != nil {
 		return nil, err
 	}
+	length := len(data)
 
-	fmt.Println("2, ", err)
 	bucketName := f.Config.Minio.BucketName
 
 	_, err = f.Storage.PutObject(
@@ -106,13 +109,16 @@ func (f *Freya) UpdateTemplate(t *Template) (*Template, error) {
 			ContentType: "text/html",
 		},
 	)
-	fmt.Println("3, ", err)
-	newTemplate := new(Template)
-	err = f.Db.Read(f.Config.DB.TemplatesDBName, t.ID, newTemplate)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("4, ", err)
+
+	newTemplate, err := f.GetTemplateByID(t.ID, true)
+	if err != nil {
+		return nil, err
+	}
+
+	log.Printf("%v", newTemplate)
 	return newTemplate, nil
 }
 
@@ -121,8 +127,6 @@ func (f *Freya) GetTemplateByName(name string, withData ...bool) (*Template, err
 	if err != nil {
 		return nil, err
 	}
-
-	log.Println("all templates: ", allTemplates)
 
 	for _, template := range allTemplates {
 		t := new(Template)

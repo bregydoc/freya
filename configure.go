@@ -10,12 +10,12 @@ import (
 const freyaConfigFileName = "./freya.config.yml"
 
 type FreyaConfig struct {
-	Mail MailConfig `yaml:"mail"`
-	SMS  SMSConfig  `yaml:"sms"`
+	Mail *MailConfig `yaml:"mail"`
+	SMS  *SMSConfig  `yaml:"sms"`
 
-	DB DataBaseConfig `yaml:"db_config"`
+	DB *DataBaseConfig `yaml:"db_config"`
 
-	Minio MinioConfig `yaml:"minio"`
+	Minio *MinioConfig `yaml:"minio"`
 
 	Port int64 `yaml:"port"`
 }
@@ -31,6 +31,7 @@ type MailConfig struct {
 }
 
 type SMSConfig struct {
+	From     string `yaml:"from"`
 	Backend  string `yaml:"backend"`
 	Endpoint string `yaml:"endpoint"`
 	Key      string `yaml:"key"`
@@ -69,19 +70,19 @@ func getEnvVarFromConfig(config string) string {
 
 func inflateConfigWithEnvs(c *FreyaConfig) {
 
-	if strings.HasPrefix(c.SMS.Key, "$") {
+	if strings.HasPrefix(c.SMS.Key, "${") {
 		c.SMS.Key = getEnvVarFromConfig(c.SMS.Key)
 	}
 
-	if strings.HasPrefix(c.SMS.Secret, "$") {
+	if strings.HasPrefix(c.SMS.Secret, "${") {
 		c.SMS.Secret = getEnvVarFromConfig(c.SMS.Secret)
 	}
 
-	if strings.HasPrefix(c.Mail.Email, "$") {
+	if strings.HasPrefix(c.Mail.Email, "${") {
 		c.Mail.Email = getEnvVarFromConfig(c.Mail.Email)
 	}
 
-	if strings.HasPrefix(c.Mail.Password, "$") {
+	if strings.HasPrefix(c.Mail.Password, "${") {
 		c.Mail.Password = getEnvVarFromConfig(c.Mail.Password)
 	}
 

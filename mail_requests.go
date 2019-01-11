@@ -9,6 +9,10 @@ import (
 	"text/template"
 )
 
+type MailBackend interface {
+	SendMail(config *MailConfig, template *Template, params interface{}, subject string, to []string) error
+}
+
 type Request struct {
 	from    string
 	to      []string
@@ -41,7 +45,7 @@ func (r *Request) parseTemplate(templateData []byte, data interface{}) error {
 	return nil
 }
 
-func (r *Request) sendMail(config MailConfig) error {
+func (r *Request) sendMail(config *MailConfig) error {
 	body := "From: " +
 		config.MetaData.FromName + "" +
 		" <" + config.MetaData.FromEmail +
@@ -59,7 +63,7 @@ func (r *Request) sendMail(config MailConfig) error {
 	return nil
 }
 
-func (r *Request) Send(config MailConfig, template *Template, params interface{}) error {
+func (r *Request) Send(config *MailConfig, template *Template, params interface{}) error {
 	data, err := ioutil.ReadAll(template.Data)
 	if err != nil {
 		return err

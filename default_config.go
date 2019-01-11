@@ -15,6 +15,8 @@ const DefaultMinioSecretKey = "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
 const DefaultMinioBucketName = "freya"
 const DefaultMinioLocation = "us-east-1"
 
+const DefaultFromSMS = "Freya"
+
 const defaultConfigContent = `---
 sms:
   backend: "nexmo" # Now Only support Nexmo Backend
@@ -39,9 +41,12 @@ func FillConfigWithDefaults(config *FreyaConfig) *FreyaConfig {
 		newConfig.Mail.Mime = DefaultMIME
 	}
 
-	voidDatabaseConfig := DataBaseConfig{}
-	if newConfig.DB == voidDatabaseConfig {
-		newConfig.DB = DataBaseConfig{
+	if newConfig.SMS.From == "" {
+		newConfig.SMS.From = DefaultFromSMS
+	}
+
+	if newConfig.DB == nil {
+		newConfig.DB = &DataBaseConfig{
 			RelativeFolder:  DefaultRelativeDBFolder,
 			PlansDBName:     DefaultPlansDBName,
 			LoggerDBName:    DefaultLoggerDBName,
@@ -62,9 +67,8 @@ func FillConfigWithDefaults(config *FreyaConfig) *FreyaConfig {
 		newConfig.DB.TemplatesDBName = DefaultTemplatesDBName
 	}
 
-	voidMinioConfig := MinioConfig{}
-	if newConfig.Minio == voidMinioConfig {
-		newConfig.Minio = MinioConfig{
+	if newConfig.Minio == nil {
+		newConfig.Minio = &MinioConfig{
 			Endpoint:        DefaultMinioEndpoint,
 			AccessKeyID:     DefaultMinioAccessKey,
 			SecretAccessKey: DefaultMinioSecretKey,

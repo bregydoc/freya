@@ -9,6 +9,11 @@ services:
       - minio
     volumes:
       - freyio:/db
+    environment:
+      MAILJET_EMAIL: "xxx"
+      MAILJET_PASSWORD: "yyy"
+      NEXMO_KEY: "zzz"
+      NEXMO_SECRET: "aaa"
   minio:
     expose:
       - "9000"

@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/bregydoc/freya/freyacon/go"
+	"github.com/k0kubun/pp"
 	"google.golang.org/grpc"
 	"log"
 	"net"
@@ -19,7 +20,16 @@ func main() {
 		log.Println("Loading freya.config.yml config file")
 	}
 
-	f, err := NewFreya(config)
+	mailJet := NewMailJetMailBackend()
+	nexmoSMS, err := NewNexmoSMSBackend(config.SMS)
+	if err != nil {
+		log.Fatalf("failed to create nexmo client %v", err)
+	}
+
+	f, err := NewFreya(config, mailJet, nexmoSMS)
+
+	pp.Println(f.Config)
+
 	if err != nil {
 		log.Fatalf("failed to create freya repository %v", err)
 	}
@@ -31,7 +41,7 @@ func main() {
 
 	grpcServer := grpc.NewServer()
 
-	freya.RegisterFreyaServer(grpcServer, &FreyaService{
+	freya.RegisterFreyaServer(grpcServer, &Service{
 		repo: f,
 	})
 
