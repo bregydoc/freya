@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"github.com/minio/minio-go"
@@ -74,23 +75,26 @@ func (f *Freya) RegisterTemplate(t *Template) (*Template, error) {
 
 func (f *Freya) UpdateTemplate(t *Template) (*Template, error) {
 	t.UpdatedAt = time.Now()
-	fmt.Println("Began...")
+	fmt.Println("Begin...")
 	t, err := f.GetTemplateByName(t.Name)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Print("0, ", err)
+	fmt.Println("0, ", err)
 	err = f.Db.Write(f.Config.DB.TemplatesDBName, t.ID, t)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Print("1, ", err)
-	length, err := t.Data.Read(nil)
+	fmt.Println("1, ", err)
+
+	buf := new(bytes.Buffer)
+	length, err := buf.ReadFrom(t.Data)
+
 	if err != nil {
 		return nil, err
 	}
 
-	fmt.Print("2, ", err)
+	fmt.Println("2, ", err)
 	bucketName := f.Config.Minio.BucketName
 
 	_, err = f.Storage.PutObject(
@@ -102,13 +106,13 @@ func (f *Freya) UpdateTemplate(t *Template) (*Template, error) {
 			ContentType: "text/html",
 		},
 	)
-	fmt.Print("3, ", err)
+	fmt.Println("3, ", err)
 	newTemplate := new(Template)
 	err = f.Db.Read(f.Config.DB.TemplatesDBName, t.ID, newTemplate)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Print("4, ", err)
+	fmt.Println("4, ", err)
 	return newTemplate, nil
 }
 
