@@ -6,10 +6,19 @@ import "google/protobuf/empty.proto";
 service Freya {
     rpc SaveNewTemplate(TemplateData) returns (SaveTemplateResponse) {}
     rpc UpdateTemplate(TemplateData) returns (UpdateTemplateResponse) {}
-    rpc SendEmail(SendEmailParams) returns (SendEmailResponse) {}
     rpc GetAllTemplates(google.protobuf.Empty) returns (TemplatesList) {}
+
+    rpc SendEmail(SendEmailParams) returns (SendEmailResponse) {}
+    rpc SendSMS(SendSMSParams) returns (SendSMSResponse) {}
 }
 
+message SendSMSParams {
+
+}
+
+message SendSMSResponse {
+
+}
 
 message TemplatesList {
     map<string, TemplateFields> templates = 1;

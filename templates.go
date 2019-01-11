@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/minio/minio-go"
 	"io"
@@ -9,13 +10,13 @@ import (
 )
 
 type Template struct {
-	ID        string
-	Name      string
-	Params    map[string]string
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	Filename  string
-	Data      io.Reader
+	ID        string            `json:"id"`
+	Name      string            `json:"name"`
+	Params    map[string]string `json:"params"`
+	CreatedAt time.Time         `json:"created_at"`
+	UpdatedAt time.Time         `json:"updated_at"`
+	Filename  string            `json:"filename"`
+	Data      io.Reader         `json:"-"`
 }
 
 func (f *Freya) RegisterTemplate(t *Template) (*Template, error) {
@@ -73,7 +74,7 @@ func (f *Freya) RegisterTemplate(t *Template) (*Template, error) {
 
 func (f *Freya) UpdateTemplate(t *Template) (*Template, error) {
 	t.UpdatedAt = time.Now()
-
+	fmt.Println("Began...")
 	t, err := f.GetTemplateByName(t.Name)
 	if err != nil {
 		return nil, err
@@ -117,13 +118,15 @@ func (f *Freya) GetTemplateByName(name string, withData ...bool) (*Template, err
 		return nil, err
 	}
 
-	log.Println(allTemplates)
+	log.Println("all templates: ", allTemplates)
 
-	for _, id := range allTemplates {
-		t, err := f.GetTemplateByID(id, false)
+	for _, template := range allTemplates {
+		t := new(Template)
+		err := json.Unmarshal([]byte(template), t)
 		if err != nil {
 			return nil, err
 		}
+
 		if t.Name == name {
 			if len(withData) > 0 {
 				if withData[0] {

@@ -12,6 +12,7 @@ type FreyaRepository interface {
 	GetTemplateByName(name string, withData ...bool) (*Template, error)
 	GetTemplateByID(id string, withData ...bool) (*Template, error)
 	GetAllTemplates(withData ...bool) ([]*Template, error)
+
 	SendMail(templateName string, params interface{}, subject string, to []string) error
 }
 
