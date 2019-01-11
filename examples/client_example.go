@@ -1,8 +1,9 @@
-package examples
+package main
 
 import (
 	"context"
 	"github.com/bregydoc/freya/freyacon/go"
+	"github.com/k0kubun/pp"
 	"google.golang.org/grpc"
 	"io/ioutil"
 	"log"
@@ -21,15 +22,19 @@ func main() {
 		panic(err)
 	}
 
-	resp, err := freyaClient.SaveNewTemplate(context.Background(), &freya.TemplateData{
+	resp, err := freyaClient.UpdateTemplate(context.Background(), &freya.TemplateData{
 		TemplateName: "welcome",
 		Data:         welcomeData,
 	})
+
 	if err != nil {
+		pp.Println(resp)
 		panic(err)
 	}
 
-	if resp.Saved {
+	if resp.Updated {
 		log.Println("Template saved")
 	}
+
+	pp.Println(resp.Template)
 }

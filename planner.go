@@ -7,76 +7,26 @@ import (
 )
 
 type Plan struct {
-	ID        string        `json:"id"`
-	Name      string        `json:"name"`
-	StartAt   time.Time     `json:"start_at"`
-	Frequency time.Duration `json:"frequency"`
-	EndAt     time.Time     `json:"end_at"`
-	Active    bool          `json:"active"`
+	ID        string        `yaml:"id"`
+	Name      string        `yaml:"name"`
+	StartAt   time.Time     `yaml:"start_at"`
+	Frequency time.Duration `yaml:"frequency"`
+	EndAt     time.Time     `yaml:"end_at"`
+	Active    bool          `yaml:"active"`
 
-	RepetitionNumber int `json:"repetition_number"`
+	RepetitionNumber int `yaml:"repetition_number"`
 
-	LaunchExactly time.Time `json:"launch_exactly"`
+	LaunchExactly time.Time `yaml:"launch_exactly"`
 
-	LastSyncCheck time.Time `json:"last_sync_check"`
+	LastSyncCheck time.Time `yaml:"last_sync_check"`
 
-	To           []string    `json:"to"`
-	TemplateName string      `json:"template_name"`
-	StaticData   interface{} `json:"static_data"`
-	IsDynamic    bool        `json:"is_dynamic"`
+	To           []string    `yaml:"to"`
+	TemplateName string      `yaml:"template_name"`
+	StaticData   interface{} `yaml:"static_data"`
+	IsDynamic    bool        `yaml:"is_dynamic"`
 }
 
 type Planner struct {
-	Plans    []*Plan   `json:"plans"`
-	LastSync time.Time `json:"last_sync"`
-}
-
-func init() {
-	ticker := time.NewTicker(time.Second)
-
-	go func() {
-		for t := range ticker.C {
-			t.String()
-			//fmt.Println("Tick at", t)
-
-			// TODO: SYNCCCCCC!!!!
-
-		}
-	}()
-}
-
-func SyncAllPlans(planner *Planner) {
-	for _, p := range planner.Plans {
-		if p.LastSyncCheck.After(p.StartAt.Add(p.Frequency)) {
-			p.LastSyncCheck = time.Now()
-			// TODO: More and more Bregy!!!
-		}
-	}
-}
-
-func CreateNewPlan(plan *Plan) (*Plan, error) {
-	if plan.ID == "" {
-		id, err := GetNewFreyaID()
-		if err != nil {
-			return nil, err
-		}
-		plan.ID = id
-	}
-
-	if plan.Active {
-		plan.StartAt = time.Now()
-	}
-
-	err := ScribbleDriver.Write(GlobalConfig.DBConfig.PlansDBName, plan.ID, plan)
-	if err != nil {
-		return nil, err
-	}
-
-	returnedPlan := new(Plan)
-	err = ScribbleDriver.Read(GlobalConfig.DBConfig.PlansDBName, plan.ID, returnedPlan)
-	if err != nil {
-		return nil, err
-	}
-
-	return returnedPlan, nil
+	Plans    []*Plan   `yaml:"plans"`
+	LastSync time.Time `yaml:"last_sync"`
 }

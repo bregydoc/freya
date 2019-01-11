@@ -1,65 +1,91 @@
 package main
 
 import (
-	"encoding/json"
-	"github.com/k0kubun/pp"
-	"github.com/minio/minio-go"
-	"github.com/nanobox-io/golang-scribble"
+	"gopkg.in/yaml.v2"
 	"io/ioutil"
-	"log"
 	"os"
+	"strings"
 )
 
+const freyaConfigFileName = "./freya.config.yml"
+
 type FreyaConfig struct {
-	Mime     string `json:"mime"`
-	Server   string `json:"server"`
-	Port     int    `json:"port"`
-	Email    string `json:"email"`
-	Password string `json:"password"`
+	Mail MailConfig `yaml:"mail"`
+	SMS  SMSConfig  `yaml:"sms"`
 
-	MetaData SenderConfig `json:"meta_data"`
+	DB DataBaseConfig `yaml:"db_config"`
 
-	DBConfig DataBaseConfig `json:"db_config"`
+	Minio MinioConfig `yaml:"minio"`
 
-	MinioStorageConfig MinioConfig `json:"minio_storage_config"`
-
-	Credentials []*AdminCredentials `json:"credentials"`
+	Port int64 `yaml:"port"`
 }
 
-type AdminCredentials struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
+type MailConfig struct {
+	Mime     string `yaml:"mime"`
+	Server   string `yaml:"server"`
+	Port     int    `yaml:"port"`
+	Email    string `yaml:"email"`
+	Password string `yaml:"password"`
+
+	MetaData SenderConfig `yaml:"metadata"`
+}
+
+type SMSConfig struct {
+	Backend  string `yaml:"backend"`
+	Endpoint string `yaml:"endpoint"`
+	Key      string `yaml:"key"`
+	Secret   string `yaml:"secret"`
 }
 
 type SenderConfig struct {
-	FromName  string `json:"from_name"`
-	FromEmail string `json:"from_email"`
+	FromName  string `yaml:"from_name"`
+	FromEmail string `yaml:"from_email"`
 }
 
 type DataBaseConfig struct {
-	AbsoluteFolder string `json:"absolute_folder"`
-	RelativeFolder string `json:"relative_folder"`
+	AbsoluteFolder string `yaml:"absolute_folder"`
+	RelativeFolder string `yaml:"relative_folder"`
 
-	PlansDBName     string `json:"plans_db_name"`
-	LoggerDBName    string `json:"logger_db_name"`
-	TemplatesDBName string `json:"templates_db_name"`
+	PlansDBName     string `yaml:"plans_db_name"`
+	LoggerDBName    string `yaml:"logger_db_name"`
+	TemplatesDBName string `yaml:"templates_db_name"`
 }
 
 type MinioConfig struct {
-	Endpoint        string `json:"endpoint"`
-	AccessKeyID     string `json:"access_key_id"`
-	SecretAccessKey string `json:"secret_access_key"`
-	UseSSL          bool   `json:"use_ssl"`
+	Endpoint        string `yaml:"endpoint"`
+	AccessKeyID     string `yaml:"access_key_id"`
+	SecretAccessKey string `yaml:"secret_access_key"`
+	UseSSL          bool   `yaml:"use_ssl"`
 
-	BucketName string `json:"bucket_name"`
-	Location   string `json:"location"`
+	BucketName string `yaml:"bucket_name"`
+	Location   string `yaml:"location"`
 }
 
-var ScribbleDriver *scribble.Driver
+func getEnvVarFromConfig(config string) string {
+	envVar := strings.Replace(config, "${", "", 1)
+	envVar = strings.Replace(envVar, "}", "", 1)
+	return os.Getenv(envVar)
+}
 
-var GlobalConfig *FreyaConfig
+func inflateConfigWithEnvs(c *FreyaConfig) {
 
-var MinioClient *minio.Client
+	if strings.HasPrefix(c.SMS.Key, "$") {
+		c.SMS.Key = getEnvVarFromConfig(c.SMS.Key)
+	}
+
+	if strings.HasPrefix(c.SMS.Secret, "$") {
+		c.SMS.Secret = getEnvVarFromConfig(c.SMS.Secret)
+	}
+
+	if strings.HasPrefix(c.Mail.Email, "$") {
+		c.Mail.Email = getEnvVarFromConfig(c.Mail.Email)
+	}
+
+	if strings.HasPrefix(c.Mail.Password, "$") {
+		c.Mail.Password = getEnvVarFromConfig(c.Mail.Password)
+	}
+
+}
 
 func ReadConfig(filename string) *FreyaConfig {
 	configData, err := ioutil.ReadFile(filename)
@@ -68,11 +94,12 @@ func ReadConfig(filename string) *FreyaConfig {
 	}
 
 	c := new(FreyaConfig)
-
-	err = json.Unmarshal(configData, c)
+	err = yaml.Unmarshal(configData, c)
 	if err != nil {
 		panic(err)
 	}
+
+	inflateConfigWithEnvs(c)
 
 	return c
 }
@@ -80,69 +107,12 @@ func ReadConfig(filename string) *FreyaConfig {
 func GetDefaultConfig() *FreyaConfig {
 	c := new(FreyaConfig)
 
-	err := json.Unmarshal([]byte(defaultConfigContent), c)
+	err := yaml.Unmarshal([]byte(defaultConfigContent), c)
 	if err != nil {
 		panic(err)
 	}
+
+	inflateConfigWithEnvs(c)
 
 	return c
-
-}
-
-func init() {
-
-	log.Println("Executing init function...")
-
-	//
-	var err error
-
-	// TODO: Bregy, please fill the default config for Freya
-	if _, err := os.Stat("./freya.config.json"); os.IsNotExist(err) {
-		GlobalConfig = GetDefaultConfig()
-		log.Println("Loading default config")
-	} else {
-		GlobalConfig = ReadConfig("./freya.config.json")
-		log.Println("Loading freya.config.json config file")
-	}
-
-	GlobalConfig = FillConfigWithDefaults(GlobalConfig)
-
-	pp.Println(GlobalConfig)
-
-	ScribbleDriver, err = scribble.New(GlobalConfig.DBConfig.RelativeFolder, nil)
-	if err != nil {
-		panic(err)
-	}
-
-	log.Println("Scribble setup done ✔︎")
-
-	MinioClient, err = minio.New(
-		GlobalConfig.MinioStorageConfig.Endpoint,
-		GlobalConfig.MinioStorageConfig.AccessKeyID,
-		GlobalConfig.MinioStorageConfig.SecretAccessKey,
-		GlobalConfig.MinioStorageConfig.UseSSL,
-	)
-
-	if err != nil {
-		panic(err)
-	}
-
-	log.Println("Minio Server setup done ✔︎")
-
-	bucketName := GlobalConfig.MinioStorageConfig.BucketName
-
-	err = MinioClient.MakeBucket(bucketName, GlobalConfig.MinioStorageConfig.Location)
-
-	if err != nil {
-
-		exists, err := MinioClient.BucketExists(bucketName)
-		if err == nil && exists {
-			log.Printf("We already own %s bucket \n", bucketName)
-		} else {
-			log.Fatalln(err)
-		}
-	}
-
-	log.Println("Minio bucket created ✔︎")
-
 }

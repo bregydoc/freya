@@ -1,0 +1,17 @@
+---
+port: 10000
+sms:
+  backend: "nexmo" # Now Only support Nexmo Backend
+  endpoint: "https://rest.nexmo.com/sms/json"
+  key: "${NEXMO_KEY}" # USe $ to extract from env variable
+  secret: "${NEXMO_SECRET}"
+mail:
+  server: "in-v3.mailjet.com"
+  port: 587
+  email: "${MAILJET_EMAIL}"
+  password: "${MAILJET_PASSWORD}"
+  metadata:
+    from_name: "Freya"
+    from_email: "example@example.com"
+minio:
+  endpoint: "minio:9000"

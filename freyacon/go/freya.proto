@@ -1,15 +1,15 @@
 syntax = "proto3";
+package freya;
+
+import "google/protobuf/empty.proto";
 
 service Freya {
     rpc SaveNewTemplate(TemplateData) returns (SaveTemplateResponse) {}
     rpc UpdateTemplate(TemplateData) returns (UpdateTemplateResponse) {}
     rpc SendEmail(SendEmailParams) returns (SendEmailResponse) {}
-    rpc GetAllTemplates(Void) returns (TemplatesList) {}
+    rpc GetAllTemplates(google.protobuf.Empty) returns (TemplatesList) {}
 }
 
-message Void {
-
-}
 
 message TemplatesList {
     map<string, TemplateFields> templates = 1;

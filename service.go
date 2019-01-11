@@ -1,16 +1,18 @@
 package main
 
 import (
+	"bytes"
 	"context"
-
 	"fmt"
+	"github.com/k0kubun/pp"
+	"io/ioutil"
+
 	"github.com/bregydoc/freya/freyacon/go"
-	"google.golang.org/grpc"
-	"log"
-	"net"
 )
 
-type FreyaService struct{}
+type FreyaService struct {
+	repo FreyaRepository
+}
 
 func (s *FreyaService) SendEmail(ctx context.Context, params *freya.SendEmailParams) (*freya.SendEmailResponse, error) {
 	to := make([]string, 0) // TODO: Make a priority queque
@@ -18,9 +20,8 @@ func (s *FreyaService) SendEmail(ctx context.Context, params *freya.SendEmailPar
 		to = append(to, i)
 	}
 
-	emailRequest := NewRequest(to, params.Subject)
+	err := s.repo.SendMail(params.TemplateName, params.TemplateFill, params.Subject, to)
 
-	err := SendMailFromSavedTemplate(emailRequest, params.TemplateName, params.TemplateFill)
 	if err != nil {
 		return &freya.SendEmailResponse{
 			Error: &freya.Error{
@@ -38,7 +39,13 @@ func (s *FreyaService) SendEmail(ctx context.Context, params *freya.SendEmailPar
 }
 
 func (s *FreyaService) SaveNewTemplate(ctx context.Context, templateData *freya.TemplateData) (*freya.SaveTemplateResponse, error) {
-	t, err := CreateNewTemplate(templateData.TemplateName, templateData.Data)
+	template := &Template{
+		Name: templateData.TemplateName,
+		Data: bytes.NewBuffer(templateData.Data),
+	}
+
+	t, err := s.repo.RegisterTemplate(template)
+
 	if err != nil {
 		return &freya.SaveTemplateResponse{
 			Saved: false,
@@ -52,11 +59,39 @@ func (s *FreyaService) SaveNewTemplate(ctx context.Context, templateData *freya.
 }
 
 func (s *FreyaService) UpdateTemplate(ctx context.Context, templateData *freya.TemplateData) (*freya.UpdateTemplateResponse, error) {
-	panic("unimplemented")
+	template := &Template{
+		Name: templateData.TemplateName,
+		Data: bytes.NewBuffer(templateData.Data),
+	}
+	pp.Println(template)
+	t, err := s.repo.UpdateTemplate(template)
+	fmt.Println(err)
+	if err != nil {
+		return &freya.UpdateTemplateResponse{
+			Template: nil,
+			Updated:  false,
+			Error: &freya.Error{
+				Message:   err.Error(),
+				ErrorCode: 1,
+			},
+		}, err
+	}
+
+	data, err := ioutil.ReadAll(t.Data)
+	return &freya.UpdateTemplateResponse{
+		Template: &freya.TemplateData{
+			Data:         data,
+			TemplateName: t.Name,
+		},
+		Updated: true,
+		Error:   nil,
+	}, nil
 }
 
 func (s *FreyaService) GetAllTemplates(ctx context.Context, void *freya.Void) (*freya.TemplatesList, error) {
-	templates, err := GetAllTemplates()
+
+	templates, err := s.repo.GetAllTemplates(true)
+
 	if err != nil {
 		return &freya.TemplatesList{
 			Templates: nil,
@@ -65,27 +100,9 @@ func (s *FreyaService) GetAllTemplates(ctx context.Context, void *freya.Void) (*
 
 	templatesList := map[string]*freya.TemplateFields{}
 	for _, t := range templates {
-		templatesList[t.Name] = &freya.TemplateFields{Fields: map[string]string{}}
+		templatesList[t.Name] = &freya.TemplateFields{Fields: t.Params}
 	}
 	return &freya.TemplatesList{
 		Templates: templatesList,
 	}, nil
-}
-
-func main() {
-	port := 10000
-	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
-	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
-	}
-	grpcServer := grpc.NewServer()
-
-	freya.RegisterFreyaServer(grpcServer, &FreyaService{})
-
-	log.Printf("Listening on :%d\n", port)
-	err = grpcServer.Serve(lis)
-	if err != nil {
-		log.Fatalf("failed on serve: %v", err)
-	}
-
 }

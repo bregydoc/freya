@@ -6,8 +6,6 @@ import (
 )
 
 const (
-	defaultAlphabet = "_~0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ" // len=64
-	defaultSize     = 22
 	defaultMaskSize = 5
 )
 
@@ -61,24 +59,4 @@ func Generate(alphabet string, size int) (string, error) {
 			}
 		}
 	}
-}
-
-// Nanoid generates secure URL-friendly unique ID.
-func Nanoid(param ...int) (string, error) {
-	var size int
-	if len(param) == 0 {
-		size = defaultSize
-	} else {
-		size = param[0]
-	}
-	bytes := make([]byte, size)
-	_, err := rand.Read(bytes)
-	if err != nil {
-		return "", err
-	}
-	id := make([]byte, size)
-	for i := 0; i < size; i++ {
-		id[i] = defaultAlphabet[bytes[i]&63]
-	}
-	return string(id[:size]), nil
 }
