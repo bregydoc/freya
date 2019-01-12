@@ -12,16 +12,25 @@ service Freya {
     rpc SendSMS(SendSMSParams) returns (SendSMSResponse) {}
 }
 
-message SendSMSParams {
+message PhoneNumber {
+    string CountryCode = 1;
+    string Number = 2;
+}
 
+message SendSMSParams {
+    PhoneNumber phone = 1;
+    string templateName = 3;
+    map <string, string> params = 4;
 }
 
 message SendSMSResponse {
-
+    bool sent = 1;
+    Error error = 2;
 }
 
 message TemplatesList {
     map<string, TemplateFields> templates = 1;
+    Error error = 2;
 }
 
 message TemplateFields {
@@ -32,11 +41,11 @@ message SendEmailParams {
     map<int32, string> to = 1; // With Priority
     string subject = 2;
     string templateName = 3;
-    map <string, string> templateFill = 4;
+    map <string, string> params = 4;
 }
 
 message SendEmailResponse {
-    bool send = 1;
+    bool sent = 1;
     Error error = 2;
 }
 
@@ -48,6 +57,7 @@ message TemplateData {
 message SaveTemplateResponse {
     bool saved = 1;
     string templateName = 2;
+    Error error = 3;
 }
 
 message UpdateTemplateResponse {

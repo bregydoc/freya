@@ -3,8 +3,8 @@ package main
 import (
 	"context"
 	"github.com/bregydoc/freya/freyacon/go"
-	"github.com/k0kubun/pp"
 	"google.golang.org/grpc"
+	"log"
 )
 
 func main() {
@@ -15,18 +15,19 @@ func main() {
 	}
 
 	freyaClient := freya.NewFreyaClient(client)
+	data := []byte("Hello {{.Name}}, from freya sms engine")
+	resp, err := freyaClient.SaveNewTemplate(context.Background(), &freya.TemplateData{
+		TemplateName: "sms_hello",
+		Data:         data,
+	})
 
-	in := &freya.SendEmailParams{
-		Subject:      "Hello",
-		Params:       map[string]string{},
-		TemplateName: "welcome_mail",
-		To:           map[int32]string{0: "bregy.malpartida@utec.edu.pe"},
-	}
-
-	res, err := freyaClient.SendEmail(context.Background(), in)
 	if err != nil {
 		panic(err)
 	}
 
-	pp.Println(res)
+	if resp.Saved {
+		log.Println("Template sms saved")
+	}
+
+	freyaClient.SendSMS()
 }

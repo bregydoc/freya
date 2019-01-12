@@ -11,9 +11,9 @@ services:
       - freyio:/db
     environment:
       MAILJET_EMAIL: "xxx"
-      MAILJET_PASSWORD: "yyy"
-      NEXMO_KEY: "zzz"
-      NEXMO_SECRET: "aaa"
+      MAILJET_PASSWORD: "xxx"
+      NEXMO_KEY: "xxx"
+      NEXMO_SECRET: "xxx"
   minio:
     expose:
       - "9000"

@@ -11,7 +11,7 @@ mail:
   email: "${MAILJET_EMAIL}"
   password: "${MAILJET_PASSWORD}"
   metadata:
-    from_name: "Bombo Freya"
+    from_name: "Freya"
     from_email: "hello@bombo.pe"
 minio:
   endpoint: "minio:9000"

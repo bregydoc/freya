@@ -1,8 +1,8 @@
 package main
 
 type PhoneNumber struct {
-	CityCode string
-	Number   string
+	CountryCode string
+	Number      string
 }
 
 type SMSSendResponse string

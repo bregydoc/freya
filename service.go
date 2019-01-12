@@ -3,6 +3,9 @@ package main
 import (
 	"bytes"
 	"context"
+
+	"github.com/golang/protobuf/ptypes/empty"
+
 	"io/ioutil"
 
 	"github.com/bregydoc/freya/freyacon/go"
@@ -18,7 +21,7 @@ func (s *Service) SendEmail(ctx context.Context, params *freya.SendEmailParams) 
 		to = append(to, i)
 	}
 
-	err := s.repo.SendMail(params.TemplateName, params.TemplateFill, params.Subject, to)
+	err := s.repo.SendMail(params.TemplateName, params.Params, params.Subject, to)
 
 	if err != nil {
 		return &freya.SendEmailResponse{
@@ -30,7 +33,7 @@ func (s *Service) SendEmail(ctx context.Context, params *freya.SendEmailParams) 
 	}
 
 	return &freya.SendEmailResponse{
-		Send:  true,
+		Sent:  true,
 		Error: nil,
 	}, nil
 
@@ -87,7 +90,7 @@ func (s *Service) UpdateTemplate(ctx context.Context, templateData *freya.Templa
 	}, nil
 }
 
-func (s *Service) GetAllTemplates(ctx context.Context, void *freya.Void) (*freya.TemplatesList, error) {
+func (s *Service) GetAllTemplates(ctx context.Context, in *empty.Empty) (*freya.TemplatesList, error) {
 
 	templates, err := s.repo.GetAllTemplates(true)
 
@@ -103,5 +106,26 @@ func (s *Service) GetAllTemplates(ctx context.Context, void *freya.Void) (*freya
 	}
 	return &freya.TemplatesList{
 		Templates: templatesList,
+	}, nil
+}
+
+func (s *Service) SendSMS(ctx context.Context, params *freya.SendSMSParams) (*freya.SendSMSResponse, error) {
+	to := &PhoneNumber{
+		CountryCode: params.Phone.CountryCode,
+		Number:      params.Phone.Number,
+	}
+
+	err := s.repo.SendSMS(params.TemplateName, params.Params, to)
+	if err != nil {
+		return &freya.SendSMSResponse{
+			Error: &freya.Error{
+				ErrorCode: 2,
+				Message:   err.Error(),
+			},
+		}, err
+	}
+
+	return &freya.SendSMSResponse{
+		Sent: true,
 	}, nil
 }

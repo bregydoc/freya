@@ -38,7 +38,7 @@ func (n *NexmoSMSBackend) SendSMS(config *SMSConfig, to *PhoneNumber, t *Templat
 
 	message := &nexmo.SMSMessage{
 		From:  config.From,
-		To:    to.CityCode + to.Number,
+		To:    to.CountryCode + to.Number,
 		Body:  buffer.Bytes(),
 		Type:  nexmo.Text,
 		Class: nexmo.Standard,
