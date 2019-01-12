@@ -3,8 +3,8 @@ package main
 import (
 	"context"
 	"github.com/bregydoc/freya/freyacon/go"
-	"github.com/k0kubun/pp"
 	"google.golang.org/grpc"
+	"log"
 )
 
 func main() {
@@ -20,13 +20,15 @@ func main() {
 		Subject:      "Hello",
 		Params:       map[string]string{},
 		TemplateName: "welcome_mail",
-		To:           map[int32]string{0: "bregy.malpartida@utec.edu.pe"},
+		To:           map[int32]string{0: "bregy.malpartida@utec.edu.pe", 1: "mateo@bombo.pe"},
 	}
 
 	res, err := freyaClient.SendEmail(context.Background(), in)
+
 	if err != nil {
 		panic(err)
 	}
 
-	pp.Println(res)
+	log.Printf("%v\n", res)
+
 }

@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"github.com/k0kubun/pp"
 	"gopkg.in/njern/gonexmo.v2"
 	"io/ioutil"
 	"text/template"
@@ -49,8 +48,6 @@ func (n *NexmoSMSBackend) SendSMS(config *SMSConfig, to *PhoneNumber, t *Templat
 	if err != nil {
 		return "", err
 	}
-
-	pp.Println(m)
 
 	return "", nil
 }

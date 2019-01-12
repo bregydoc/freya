@@ -20,8 +20,9 @@ func main() {
 		log.Println("Loading freya.config.yml config file")
 	}
 
-	mailJet := NewMailJetMailBackend()
+	mailJet := NewMailJetMailBackend(config.Mail)
 	nexmoSMS, err := NewNexmoSMSBackend(config.SMS)
+
 	if err != nil {
 		log.Fatalf("failed to create nexmo client %v", err)
 	}
