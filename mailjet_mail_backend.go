@@ -1,38 +1,53 @@
 package main
 
 import (
+	"bytes"
 	"io/ioutil"
-	"log"
+	"text/template"
 )
 
+import "gopkg.in/gomail.v2"
+
 type MailJetMailBackend struct {
-	req *Request
+	d *gomail.Dialer
 }
 
-func NewMailJetMailBackend() *MailJetMailBackend {
+func NewMailJetMailBackend(config *MailConfig) *MailJetMailBackend {
+	d := gomail.NewDialer(config.Server, config.Port, config.Email, config.Password)
+
 	return &MailJetMailBackend{
-		req: nil,
+		d: d,
 	}
 }
 
-func (mail *MailJetMailBackend) SendMail(config *MailConfig, template *Template, params interface{}, subject string, to []string) error {
-	data, err := ioutil.ReadAll(template.Data)
+func (mail *MailJetMailBackend) SendMail(config *MailConfig, t *Template, params interface{}, subject string, to []string) error {
+	data, err := ioutil.ReadAll(t.Data)
 	if err != nil {
 		return err
 	}
-	// TODO: Check this stupid frame of code
-	request := newRequest(to, subject)
 
-	mail.req = request
-
-	err = mail.req.parseTemplate(data, params)
+	from := config.MetaData.FromName + " <" + config.MetaData.FromEmail + ">"
+	body := new(bytes.Buffer)
+	temp, err := template.New(t.Name).Parse(string(data))
 	if err != nil {
-		log.Fatal(err)
-	}
-	if err := mail.req.sendMail(config); err != nil {
-		log.Printf("Failed to send the email to %s\n", mail.req.to)
 		return err
 	}
-	log.Printf("Email has been sent to %s\n", mail.req.to)
+	err = temp.Execute(body, params)
+	if err != nil {
+		return err
+	}
+
+	m := gomail.NewMessage()
+	m.SetHeader("From", from)
+	m.SetHeader("To", to...)
+	//m.SetAddressHeader("Cc", "dan@example.com", "Dan")
+	m.SetHeader("Subject", subject)
+	m.SetBody("text/html", body.String())
+	//m.Attach("/home/Alex/cat.jpg") // ready to attachment
+
+	if err := mail.d.DialAndSend(m); err != nil {
+		return err
+	}
+
 	return nil
 }
