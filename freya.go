@@ -14,7 +14,7 @@ type Repository interface {
 	GetAllTemplates(withData ...bool) ([]*Template, error)
 
 	SendMail(templateName string, params interface{}, subject string, to []string) error
-	SendSMS(templateName string, params interface{}, to *PhoneNumber) error
+	SendSMS(templateName string, params map[string]string, to *PhoneNumber) error
 }
 
 type Freya struct {

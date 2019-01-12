@@ -15,9 +15,10 @@ func main() {
 	}
 
 	freyaClient := freya.NewFreyaClient(client)
-	data := []byte("Hello {{.Name}}, from freya sms engine")
+
+	data := []byte("Hello {{.Name}}, I'm {{.engine}}")
 	resp, err := freyaClient.SaveNewTemplate(context.Background(), &freya.TemplateData{
-		TemplateName: "sms_hello",
+		TemplateName: "hello",
 		Data:         data,
 	})
 
@@ -29,5 +30,23 @@ func main() {
 		log.Println("Template sms saved")
 	}
 
-	freyaClient.SendSMS()
+	r, err := freyaClient.SendSMS(context.Background(), &freya.SendSMSParams{
+		TemplateName: "hello",
+		Phone: &freya.PhoneNumber{
+			CountryCode: "51",
+			Number:      "957821858",
+		},
+		Params: map[string]string{
+			"Name":   "Bregy",
+			"engine": "freya",
+		},
+	})
+
+	if err != nil {
+		panic(err)
+	}
+
+	if r.Sent {
+		log.Println("SMS has been sent")
+	}
 }

@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"github.com/k0kubun/pp"
 	"gopkg.in/njern/gonexmo.v2"
 	"io/ioutil"
 	"text/template"
@@ -22,32 +23,38 @@ func NewNexmoSMSBackend(config *SMSConfig) (*NexmoSMSBackend, error) {
 	}, nil
 }
 
-func (n *NexmoSMSBackend) SendSMS(config *SMSConfig, to *PhoneNumber, t *Template, params interface{}) (SMSSendResponse, error) {
+func (n *NexmoSMSBackend) SendSMS(config *SMSConfig, to *PhoneNumber, t *Template, params map[string]string) (SMSSendResponse, error) {
 	data, err := ioutil.ReadAll(t.Data)
 	if err != nil {
 		return "", err
 	}
 
-	temp, err := template.New("nexmo").Parse(string(data))
+	temp, err := template.New(t.Name).Parse(string(data))
 
 	buffer := new(bytes.Buffer)
 
-	if err = temp.Execute(buffer, data); err != nil {
+	if err = temp.Execute(buffer, params); err != nil {
 		return "", err
 	}
 
 	message := &nexmo.SMSMessage{
 		From:  config.From,
 		To:    to.CountryCode + to.Number,
-		Body:  buffer.Bytes(),
+		Text:  buffer.String(),
 		Type:  nexmo.Text,
 		Class: nexmo.Standard,
 	}
 
-	_, err = n.client.SMS.Send(message)
+	m, err := n.client.SMS.Send(message)
 	if err != nil {
 		return "", err
 	}
 
+	pp.Println(m)
+
 	return "", nil
+}
+
+func (n *NexmoSMSBackend) GetBalance() (float64, error) {
+	return n.client.Account.GetBalance()
 }

@@ -2,8 +2,8 @@ package main
 
 import "errors"
 
-func (f *Freya) SendSMS(templateName string, params interface{}, to *PhoneNumber) error {
-	t, err := f.GetTemplateByName(templateName)
+func (f *Freya) SendSMS(templateName string, params map[string]string, to *PhoneNumber) error {
+	t, err := f.GetTemplateByName(templateName, true)
 	if err != nil {
 		return err
 	}
