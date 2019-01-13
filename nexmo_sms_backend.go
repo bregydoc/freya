@@ -44,7 +44,7 @@ func (n *NexmoSMSBackend) SendSMS(config *SMSConfig, to *PhoneNumber, t *Templat
 		Class: nexmo.Standard,
 	}
 
-	m, err := n.client.SMS.Send(message)
+	_, err = n.client.SMS.Send(message)
 	if err != nil {
 		return "", err
 	}
