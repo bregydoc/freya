@@ -21,6 +21,7 @@ type FreyaConfig struct {
 }
 
 type MailConfig struct {
+	Backend  string `yaml:"backend"`
 	Mime     string `yaml:"mime"`
 	Server   string `yaml:"server"`
 	Port     int    `yaml:"port"`
