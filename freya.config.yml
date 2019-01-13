@@ -6,6 +6,7 @@ sms:
   key: "${NEXMO_KEY}" # USe $ to extract from env variable
   secret: "${NEXMO_SECRET}"
 mail:
+  backend: "mailjet"
   server: "in-v3.mailjet.com"
   port: 587
   email: "${MAILJET_EMAIL}"
