@@ -2,10 +2,13 @@ package main
 
 import (
 	"context"
-	"github.com/bregydoc/freya/freyacon/go"
-	"google.golang.org/grpc"
+	"github.com/golang/protobuf/ptypes/empty"
+	"github.com/k0kubun/pp"
 	"io/ioutil"
 	"log"
+
+	freya "github.com/bregydoc/freya/freyacon/go"
+	"google.golang.org/grpc"
 )
 
 func main() {
@@ -14,15 +17,16 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	defer client.Close()
 
 	freyaClient := freya.NewFreyaClient(client)
-	welcomeData, err := ioutil.ReadFile("/Users/macBook/Documents/welcome_template.html.txt")
+	welcomeData, err := ioutil.ReadFile("/Users/macbook/go/src/github.com/bregydoc/micro-culqi/r.html")
 	if err != nil {
 		panic(err)
 	}
 
 	resp, err := freyaClient.SaveNewTemplate(context.Background(), &freya.TemplateData{
-		TemplateName: "welcome_mail",
+		TemplateName: "bombo",
 		Data:         welcomeData,
 	})
 
@@ -33,5 +37,12 @@ func main() {
 	if resp.Saved {
 		log.Println("Template saved")
 	}
+
+	templates, err := freyaClient.GetAllTemplates(context.Background(), &empty.Empty{})
+	if err != nil {
+		panic(err)
+	}
+
+	pp.Println(templates)
 
 }

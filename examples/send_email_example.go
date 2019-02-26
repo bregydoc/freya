@@ -17,9 +17,20 @@ func main() {
 	freyaClient := freya.NewFreyaClient(client)
 
 	in := &freya.SendEmailParams{
-		Subject:      "Hello",
-		Params:       map[string]string{},
-		TemplateName: "welcome_mail",
+		Subject: "Hello",
+		Params: map[string]string{
+			"ChargedAmount": "13.23 PEN",
+			"Discount":      "-24.21 PEN",
+			"Description":   "Bombo test",
+			"Name":          "Bombo",
+			"ChargedCard":   "VISA ****2312",
+			"Product":       "BomboCard",
+			"SubTotal":      "123.213 PEN",
+			"TotalCost":     "123.213 PEN",
+			"Code":          "AS12398OJW1",
+			"Date":          "Tue Feb 26, 2019",
+		},
+		TemplateName: "bombo",
 		To:           map[int32]string{0: "bregy.malpartida@utec.edu.pe", 1: "mateo@bombo.pe"},
 	}
 

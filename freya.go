@@ -1,9 +1,9 @@
 package main
 
 import (
-	"github.com/minio/minio-go"
-	"github.com/nanobox-io/golang-scribble"
 	"log"
+
+	"github.com/nanobox-io/golang-scribble"
 )
 
 type Repository interface {
@@ -20,7 +20,7 @@ type Repository interface {
 type Freya struct {
 	Config      *FreyaConfig
 	Db          *scribble.Driver
-	Storage     *minio.Client
+	Storage     *StorageEngine
 	Gen         *FreyaIDGenerator
 	SMSBackend  SMSBackend
 	MailBackend MailBackend
@@ -44,29 +44,16 @@ func NewFreya(config *FreyaConfig, mailBackend MailBackend, smsBackend SMSBacken
 
 	log.Println("Scribble setup done ✔︎")
 
-	f.Storage, err = minio.New(
-		f.Config.Minio.Endpoint,
-		f.Config.Minio.AccessKeyID,
-		f.Config.Minio.SecretAccessKey,
-		f.Config.Minio.UseSSL,
-	)
+	f.Storage, err = NewStorageEngine(config.Storage)
 
-	bucketName := f.Config.Minio.BucketName
+	log.Println("Storage setup done ✔︎")
 
-	log.Println("Minio Client setup done ✔︎")
-
-	err = f.Storage.MakeBucket(bucketName, f.Config.Minio.Location)
-
+	err = f.Storage.Init()
 	if err != nil {
-		exists, err := f.Storage.BucketExists(bucketName)
-		if err == nil && exists {
-			log.Printf("%s bucket exist\n", bucketName)
-		} else {
-			return nil, err
-		}
+		return nil, err
 	}
 
-	log.Println("Minio bucket created ✔︎")
+	log.Println("Storage init correctly ✔︎")
 
 	f.SMSBackend = smsBackend
 	f.MailBackend = mailBackend

@@ -2,22 +2,33 @@ package main
 
 import (
 	"fmt"
-	"github.com/bregydoc/freya/freyacon/go"
-	"github.com/k0kubun/pp"
-	"google.golang.org/grpc"
 	"log"
 	"net"
 	"os"
+
+	yaml "gopkg.in/yaml.v2"
+
+	freya "github.com/bregydoc/freya/freyacon/go"
+	"github.com/k0kubun/pp"
+	"google.golang.org/grpc"
 )
 
 func main() {
-	var config *FreyaConfig
-	if _, err := os.Stat(freyaConfigFileName); os.IsNotExist(err) {
-		config = GetDefaultConfig()
-		log.Println("Loading default config")
+	config := new(FreyaConfig)
+	composeConfig := os.Getenv("FREYA_CONFIG")
+	if composeConfig != "" {
+		err := yaml.Unmarshal([]byte(composeConfig), config)
+		if err != nil {
+			log.Fatalf("failed to read FREYA_CONFIG from docker-compose.yml\n%v", err)
+		}
 	} else {
-		config = ReadConfig(freyaConfigFileName)
-		log.Println("Loading freya.config.yml config file")
+		if _, err := os.Stat(freyaConfigFileName); os.IsNotExist(err) {
+			config = GetDefaultConfig()
+			log.Println("Loading default config")
+		} else {
+			config = ReadConfig(freyaConfigFileName)
+			log.Println("Loading freya.config.yml config file")
+		}
 	}
 
 	mailJet := NewMailJetMailBackend(config.Mail)

@@ -2,9 +2,12 @@ package main
 
 import (
 	"context"
+	"github.com/golang/protobuf/ptypes/empty"
+	"github.com/k0kubun/pp"
+	"log"
+
 	"github.com/bregydoc/freya/freyacon/go"
 	"google.golang.org/grpc"
-	"log"
 )
 
 func main() {
@@ -49,4 +52,12 @@ func main() {
 	if r.Sent {
 		log.Println("SMS has been sent")
 	}
+
+	ts, err := freyaClient.GetAllTemplates(context.Background(), &empty.Empty{})
+	if err != nil {
+		log.Println(ts)
+		panic(err)
+	}
+
+	pp.Println(ts.Templates)
 }

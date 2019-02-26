@@ -1,11 +1,13 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
-	"github.com/minio/minio-go"
 	"io"
 	"io/ioutil"
-	"log"
+	"strings"
+	"text/template"
+	"text/template/parse"
 	"time"
 )
 
@@ -17,6 +19,44 @@ type Template struct {
 	UpdatedAt time.Time         `json:"updated_at"`
 	Filename  string            `json:"filename"`
 	Data      io.Reader         `json:"-"`
+}
+
+const bucketName = "freya"
+
+func listTemplateFields(t *template.Template) []string {
+	return listNodeFields(t.Tree.Root, nil)
+}
+
+func listNodeFields(node parse.Node, res []string) []string {
+	if node.Type() == parse.NodeAction {
+		// res = append(res, node.String())
+		p := strings.Replace(node.String(), "{{", "", -1)
+		p = strings.Replace(p, "}}", "", -1)
+		p = strings.Replace(p, ".", "", 1)
+		res = append(res, p)
+	}
+
+	if ln, ok := node.(*parse.ListNode); ok {
+		for _, n := range ln.Nodes {
+			res = listNodeFields(n, res)
+		}
+	}
+	return res
+}
+
+func getParamsMapFromDataOfTemplate(name string, data []byte) (map[string]string, error) {
+	tmpl, err := template.New(name).Parse(string(data))
+	if err != nil {
+		return nil, err
+	}
+	params := listTemplateFields(tmpl)
+	paramsMap := map[string]string{}
+
+	for _, p := range params {
+		paramsMap[p] = "string"
+	}
+
+	return paramsMap, nil
 }
 
 func (f *Freya) RegisterTemplate(t *Template) (*Template, error) {
@@ -37,20 +77,16 @@ func (f *Freya) RegisterTemplate(t *Template) (*Template, error) {
 	if err != nil {
 		return nil, err
 	}
-	length := len(data)
 
-	bucketName := f.Config.Minio.BucketName
+	err = f.Storage.SaveObject(bucketName, filename, data, &StorageEngineOptions{
+		ContentType: "text/html",
+	})
 
-	_, err = f.Storage.PutObject(
-		bucketName,
-		filename,
-		t.Data,
-		int64(length),
-		minio.PutObjectOptions{
-			ContentType: "text/html",
-		},
-	)
+	if err != nil {
+		return nil, err
+	}
 
+	paramsMap, err := getParamsMapFromDataOfTemplate(t.Name, data)
 	if err != nil {
 		return nil, err
 	}
@@ -58,6 +94,7 @@ func (f *Freya) RegisterTemplate(t *Template) (*Template, error) {
 	t.Filename = filename
 	t.ID = id
 	t.CreatedAt = time.Now()
+	t.Params = paramsMap
 
 	err = f.Db.Write(f.Config.DB.TemplatesDBName, t.ID, t)
 	if err != nil {
@@ -84,7 +121,18 @@ func (f *Freya) UpdateTemplate(t *Template) (*Template, error) {
 	t.Filename = oldT.Filename
 	t.Name = oldT.Name
 	t.CreatedAt = oldT.CreatedAt
-	t.Params = oldT.Params
+
+	data, err := ioutil.ReadAll(t.Data)
+	if err != nil {
+		return nil, err
+	}
+
+	params, err := getParamsMapFromDataOfTemplate(t.Name, data)
+	if err != nil {
+		return nil, err
+	}
+
+	t.Params = params
 	t.UpdatedAt = time.Now()
 
 	err = f.Db.Write(f.Config.DB.TemplatesDBName, t.ID, t)
@@ -92,23 +140,10 @@ func (f *Freya) UpdateTemplate(t *Template) (*Template, error) {
 		return nil, err
 	}
 
-	data, err := ioutil.ReadAll(t.Data)
-	if err != nil {
-		return nil, err
-	}
-	length := len(data)
+	err = f.Storage.SaveObject(bucketName, t.Filename, data, &StorageEngineOptions{
+		ContentType: "text/html",
+	})
 
-	bucketName := f.Config.Minio.BucketName
-
-	_, err = f.Storage.PutObject(
-		bucketName,
-		t.Filename,
-		t.Data,
-		int64(length),
-		minio.PutObjectOptions{
-			ContentType: "text/html",
-		},
-	)
 	if err != nil {
 		return nil, err
 	}
@@ -118,11 +153,11 @@ func (f *Freya) UpdateTemplate(t *Template) (*Template, error) {
 		return nil, err
 	}
 
-	log.Printf("%v", newTemplate)
 	return newTemplate, nil
 }
 
 func (f *Freya) GetTemplateByName(name string, withData ...bool) (*Template, error) {
+
 	allTemplates, err := f.Db.ReadAll(f.Config.DB.TemplatesDBName)
 	if err != nil {
 		return nil, err
@@ -138,12 +173,12 @@ func (f *Freya) GetTemplateByName(name string, withData ...bool) (*Template, err
 		if t.Name == name {
 			if len(withData) > 0 {
 				if withData[0] {
-					bucketName := f.Config.Minio.BucketName
-					obj, err := f.Storage.GetObject(bucketName, t.Filename, minio.GetObjectOptions{})
+
+					obj, err := f.Storage.GetObject(bucketName, t.Filename)
 					if err != nil {
 						return nil, err
 					}
-					t.Data = obj
+					t.Data = bytes.NewBuffer(obj)
 				}
 			}
 			return t, err
@@ -153,38 +188,41 @@ func (f *Freya) GetTemplateByName(name string, withData ...bool) (*Template, err
 }
 
 func (f *Freya) GetTemplateByID(id string, withData ...bool) (*Template, error) {
-	template := new(Template)
-	err := f.Db.Read(f.Config.DB.TemplatesDBName, id, template)
+
+	t := new(Template)
+	err := f.Db.Read(f.Config.DB.TemplatesDBName, id, t)
 	if err != nil {
 		return nil, err
 	}
 
-	if template.ID == "" {
+	if t.ID == "" {
 		return nil, templateNotExistError
 	}
 
 	if len(withData) > 0 {
 		if withData[0] {
-			bucketName := f.Config.Minio.BucketName
-			obj, err := f.Storage.GetObject(bucketName, template.Filename, minio.GetObjectOptions{})
+
+			obj, err := f.Storage.GetObject(bucketName, t.Filename)
 			if err != nil {
 				return nil, err
 			}
-			template.Data = obj
+			t.Data = bytes.NewBuffer(obj)
 		}
 	}
 
-	return template, nil
+	return t, nil
 }
 
 func (f *Freya) GetAllTemplates(withData ...bool) ([]*Template, error) {
+
 	allTemplates, err := f.Db.ReadAll(f.Config.DB.TemplatesDBName)
 	if err != nil {
 		return nil, err
 	}
 	templates := make([]*Template, 0)
-	for _, id := range allTemplates {
-		t, err := f.GetTemplateByID(id, withData...)
+	for _, tx := range allTemplates {
+		t := new(Template)
+		err = json.Unmarshal([]byte(tx), t)
 		if err != nil {
 			return nil, err
 		}

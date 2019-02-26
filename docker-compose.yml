@@ -1,32 +1,31 @@
-version: '3'
+version: "3"
 services:
   freya:
-    restart: always
     build: .
+    restart: always
     ports:
       - "10000:10000"
-    links:
-      - minio
     volumes:
-      - freyio:/db
+      - freyio:/udb
+      - freyio:/storage
     environment:
-      MAILJET_EMAIL: "xxx"
-      MAILJET_PASSWORD: "xxx"
-      NEXMO_KEY: "xxx"
-      NEXMO_SECRET: "xxx"
-  minio:
-    expose:
-      - "9000"
-    image: "minio/minio"
-    restart: always
-    command: "server /freyio"
-    environment:
-      MINIO_ACCESS_KEY: "AKIAIOSFODNN7EXAMPLE"
-      MINIO_SECRET_KEY: "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
-    ports:
-      - "9000:9000"
-    volumes:
-      - freyio:/data
+      FREYA_CONFIG: |
+        port: 10000
+        storage: "/storage"
+        sms:
+          backend: nexmo
+          endpoint: https://rest.nexmo.com/sms/json
+          key: <YOUR NEXMO KEY>
+          secret: <YOUR NEXMO SECRET>
+        mail:
+          backend: mailjet
+          server: in-v3.mailjet.com
+          port: 587
+          email: <YOUR MAILJET ACCESS EMAIL>
+          password: <YOUR MAILJET ACCESS PASSWORD>
+          metadata:
+            from_name: Freya
+            from_email: example@example.com
 
 volumes:
   freyio:

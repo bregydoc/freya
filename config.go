@@ -13,11 +13,9 @@ type FreyaConfig struct {
 	Mail *MailConfig `yaml:"mail"`
 	SMS  *SMSConfig  `yaml:"sms"`
 
-	DB *DataBaseConfig `yaml:"db_config"`
-
-	Minio *MinioConfig `yaml:"minio"`
-
-	Port int64 `yaml:"port"`
+	DB      *DataBaseConfig `yaml:"db_config"`
+	Storage string          `yaml:"storage"`
+	Port    int64           `yaml:"port"`
 }
 
 type MailConfig struct {
@@ -53,16 +51,6 @@ type DataBaseConfig struct {
 	TemplatesDBName string `yaml:"templates_db_name"`
 }
 
-type MinioConfig struct {
-	Endpoint        string `yaml:"endpoint"`
-	AccessKeyID     string `yaml:"access_key_id"`
-	SecretAccessKey string `yaml:"secret_access_key"`
-	UseSSL          bool   `yaml:"use_ssl"`
-
-	BucketName string `yaml:"bucket_name"`
-	Location   string `yaml:"location"`
-}
-
 func getEnvVarFromConfig(config string) string {
 	envVar := strings.Replace(config, "${", "", 1)
 	envVar = strings.Replace(envVar, "}", "", 1)
@@ -94,7 +82,6 @@ func ReadConfig(filename string) *FreyaConfig {
 	if err != nil {
 		panic(err)
 	}
-
 	c := new(FreyaConfig)
 	err = yaml.Unmarshal(configData, c)
 	if err != nil {

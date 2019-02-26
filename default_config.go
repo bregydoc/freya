@@ -1,23 +1,19 @@
 package main
 
 const DefaultMIME = "MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\n\n"
-
+const DefaultAbsoluteDBFolder = "/udb/udb"
 const DefaultRelativeDBFolder = "./udb"
 const DefaultPlansDBName = "plans"
 const DefaultLoggerDBName = "logger"
 const DefaultTemplatesDBName = "templates"
 
-const DefaultMinioEndpoint = "minio:9000"
-const DefaultMinioAccessKey = "AKIAIOSFODNN7EXAMPLE"
-const DefaultMinioSecretKey = "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
-
-//const DefaultMinioUseSSL = false
-const DefaultMinioBucketName = "freya"
-const DefaultMinioLocation = "us-east-1"
-
 const DefaultFromSMS = "Freya"
+const DefaultStorage = "/storage"
+
+const DefaultPort = 10000
 
 const defaultConfigContent = `---
+storage: "/storage" # It's for the docker volume'
 sms:
   backend: "nexmo" # Now Only support Nexmo Backend
   endpoint: "https://rest.nexmo.com/sms/json"
@@ -31,8 +27,6 @@ mail:
   metadata:
     from_name: "Freya"
     from_email: "example@example.com"
-minio:
-  endpoint: "minio:9000"
 `
 
 func FillConfigWithDefaults(config *FreyaConfig) *FreyaConfig {
@@ -54,6 +48,9 @@ func FillConfigWithDefaults(config *FreyaConfig) *FreyaConfig {
 		}
 	}
 
+	if newConfig.DB.AbsoluteFolder == "" {
+		newConfig.DB.AbsoluteFolder = DefaultAbsoluteDBFolder
+	}
 	if newConfig.DB.RelativeFolder == "" {
 		newConfig.DB.RelativeFolder = DefaultRelativeDBFolder
 	}
@@ -67,33 +64,13 @@ func FillConfigWithDefaults(config *FreyaConfig) *FreyaConfig {
 		newConfig.DB.TemplatesDBName = DefaultTemplatesDBName
 	}
 
-	if newConfig.Minio == nil {
-		newConfig.Minio = &MinioConfig{
-			Endpoint:        DefaultMinioEndpoint,
-			AccessKeyID:     DefaultMinioAccessKey,
-			SecretAccessKey: DefaultMinioSecretKey,
-
-			BucketName: DefaultMinioBucketName,
-			Location:   DefaultMinioLocation,
-		}
+	if newConfig.Storage == "" {
+		newConfig.Storage = DefaultStorage
 	}
 
-	if newConfig.Minio.Endpoint == "" {
-		newConfig.Minio.Endpoint = DefaultMinioEndpoint
-	}
-	if newConfig.Minio.AccessKeyID == "" {
-		newConfig.Minio.AccessKeyID = DefaultMinioAccessKey
-	}
-	if newConfig.Minio.SecretAccessKey == "" {
-		newConfig.Minio.SecretAccessKey = DefaultMinioSecretKey
-	}
-	if newConfig.Minio.BucketName == "" {
-		newConfig.Minio.BucketName = DefaultMinioBucketName
-	}
-	if newConfig.Minio.Location == "" {
-		newConfig.Minio.Location = DefaultMinioLocation
+	if newConfig.Port == 0 {
+		newConfig.Port = DefaultPort
 	}
 
 	return &newConfig
-
 }

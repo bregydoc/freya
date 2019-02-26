@@ -1,9 +1,10 @@
 ---
 port: 10000
+storage: "/storage"
 sms:
-  backend: "nexmo" # Now Only support Nexmo Backend
+  backend: "nexmo" # Now freya only support Nexmo Backend
   endpoint: "https://rest.nexmo.com/sms/json"
-  key: "${NEXMO_KEY}" # USe $ to extract from env variable
+  key: "${NEXMO_KEY}" # Use $ to extract from env variable
   secret: "${NEXMO_SECRET}"
 mail:
   backend: "mailjet"
@@ -14,5 +15,3 @@ mail:
   metadata:
     from_name: "Freya"
     from_email: "hello@bombo.pe"
-minio:
-  endpoint: "minio:9000"
