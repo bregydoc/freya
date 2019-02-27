@@ -1,6 +1,7 @@
-version: "3"
+version: "3.1"
 services:
   freya:
+
     build: .
     restart: always
     ports:
@@ -8,6 +9,9 @@ services:
     volumes:
       - freyio:/udb
       - freyio:/storage
+    secrets:
+      - grpc_cert
+      - grpc_key
     environment:
       FREYA_CONFIG: |
         port: 10000
@@ -15,17 +19,22 @@ services:
         sms:
           backend: nexmo
           endpoint: https://rest.nexmo.com/sms/json
-          key: <YOUR NEXMO KEY>
-          secret: <YOUR NEXMO SECRET>
+          key: <YOUR_NEXMO_KEY>
+          secret: <YOUR_NEXMO_SECRET>
         mail:
           backend: mailjet
           server: in-v3.mailjet.com
           port: 587
-          email: <YOUR MAILJET ACCESS EMAIL>
-          password: <YOUR MAILJET ACCESS PASSWORD>
+          email: <YOUR_EMAIL_MAIL_SERVICE>
+          password: <YOUR_PASSWORD_MAIL_SERVICE>
           metadata:
             from_name: Freya
             from_email: example@example.com
+secrets:
+  grpc_cert:
+    file: ./server-cert.crt
+  grpc_key:
+    file: ./server-key.key
 
 volumes:
   freyio:

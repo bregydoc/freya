@@ -2,14 +2,14 @@ package main
 
 import (
 	"fmt"
+	"google.golang.org/grpc/credentials"
 	"log"
 	"net"
 	"os"
 
-	yaml "gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v2"
 
-	freya "github.com/bregydoc/freya/freyacon/go"
-	"github.com/k0kubun/pp"
+	"github.com/bregydoc/freya/freyacon/go"
 	"google.golang.org/grpc"
 )
 
@@ -40,10 +40,27 @@ func main() {
 
 	f, err := NewFreya(config, mailJet, nexmoSMS)
 
-	pp.Println(f.Config)
+	cfg, _ := yaml.Marshal(config)
+	fmt.Printf("===FREYA CONFIG===\n%s\n", string(cfg))
 
 	if err != nil {
 		log.Fatalf("failed to create freya repository %v", err)
+	}
+
+	// Check if we have TLS a secure connection
+	withTLS := true
+	certificate := "/run/secrets/grpc_cert"
+	key := "/run/secrets/grpc_key"
+
+	_, err = os.Open(certificate)
+	if err != nil || os.IsNotExist(err) {
+		withTLS = false
+	}
+	if withTLS {
+		_, err = os.Open(key)
+		if err != nil || os.IsNotExist(err) {
+			withTLS = false
+		}
 	}
 
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", config.Port))
@@ -51,7 +68,20 @@ func main() {
 		log.Fatalf("failed to listen: %v", err)
 	}
 
-	grpcServer := grpc.NewServer()
+	var grpcServer *grpc.Server
+	if withTLS {
+		log.Println("setting with TLS from \"secrets/grpc_cert\" and \"secrets/grpc_key\"")
+		c, err := credentials.NewServerTLSFromFile(certificate, key)
+		if err != nil {
+			log.Fatalf("Failed to setup tls: %v", err)
+		}
+		grpcServer = grpc.NewServer(
+			grpc.Creds(c),
+		)
+	} else {
+		log.Println("setting without any security")
+		grpcServer = grpc.NewServer()
+	}
 
 	freya.RegisterFreyaServer(grpcServer, &Service{
 		repo: f,
