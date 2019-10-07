@@ -8,7 +8,7 @@ import (
 
 	"io/ioutil"
 
-	"github.com/bregydoc/freya/freyacon/go"
+	freya "github.com/bregydoc/freya/proto"
 )
 
 type Service struct {

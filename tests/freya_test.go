@@ -1,7 +1,7 @@
 package tests
 
 import (
-	"github.com/bregydoc/freya/freyacon/go"
+	freya "github.com/bregydoc/freya/proto"
 	a "github.com/stretchr/testify/assert"
 	"log"
 	"testing"

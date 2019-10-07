@@ -2,12 +2,12 @@ package main
 
 import (
 	"context"
-	"github.com/golang/protobuf/ptypes/empty"
-	"github.com/k0kubun/pp"
 	"io/ioutil"
 	"log"
 
-	freya "github.com/bregydoc/freya/freyacon/go"
+	"github.com/golang/protobuf/ptypes/empty"
+
+	freya "github.com/bregydoc/freya/proto"
 	"google.golang.org/grpc"
 )
 
@@ -42,7 +42,5 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-
-	pp.Println(templates)
 
 }

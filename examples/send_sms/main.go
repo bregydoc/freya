@@ -6,7 +6,7 @@ import (
 	"github.com/k0kubun/pp"
 	"log"
 
-	"github.com/bregydoc/freya/freyacon/go"
+	freya "github.com/bregydoc/freya/proto"
 	"google.golang.org/grpc"
 )
 
@@ -59,5 +59,5 @@ func main() {
 		panic(err)
 	}
 
-	pp.Println(ts.Templates)
+	
 }

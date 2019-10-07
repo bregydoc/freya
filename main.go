@@ -9,7 +9,7 @@ import (
 
 	"gopkg.in/yaml.v2"
 
-	"github.com/bregydoc/freya/freyacon/go"
+	freya "github.com/bregydoc/freya/proto"
 	"google.golang.org/grpc"
 )
 

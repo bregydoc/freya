@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"github.com/bregydoc/freya/freyacon/go"
+	freya "github.com/bregydoc/freya/proto"
 	"google.golang.org/grpc"
 	"log"
 )
