@@ -11,14 +11,20 @@ import (
 	"time"
 )
 
+type TemplateType string
+
+var MJML TemplateType = "mjml"
+
 type Template struct {
-	ID        string            `json:"id"`
+	ID        string            `json:"id" boltholdIndex:"ID"`
 	Name      string            `json:"name"`
 	Params    map[string]string `json:"params"`
 	CreatedAt time.Time         `json:"created_at"`
 	UpdatedAt time.Time         `json:"updated_at"`
 	Filename  string            `json:"filename"`
-	Data      io.Reader         `json:"-"`
+	Type      TemplateType
+	Data      io.Reader `json:"-"`
+	Body      []byte
 }
 
 const bucketName = "freya"

@@ -1,1 +1,1 @@
-protoc -I=proto --go_out=proto proto/freya.proto
+protoc -I=proto/ --go_out=plugins=grpc:proto proto/freya.proto

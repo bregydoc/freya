@@ -2,10 +2,11 @@ package main
 
 import (
 	"fmt"
-	"google.golang.org/grpc/credentials"
 	"log"
 	"net"
 	"os"
+
+	"google.golang.org/grpc/credentials"
 
 	"gopkg.in/yaml.v2"
 

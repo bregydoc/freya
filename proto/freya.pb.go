@@ -4,9 +4,13 @@
 package freya
 
 import (
+	context "context"
 	fmt "fmt"
 	proto "github.com/golang/protobuf/proto"
-	_ "github.com/golang/protobuf/ptypes/empty"
+	empty "github.com/golang/protobuf/ptypes/empty"
+	grpc "google.golang.org/grpc"
+	codes "google.golang.org/grpc/codes"
+	status "google.golang.org/grpc/status"
 	math "math"
 )
 
@@ -635,4 +639,228 @@ var fileDescriptor_c1a59bcae510a086 = []byte{
 	0x98, 0x7f, 0x2e, 0xdf, 0x5b, 0xf6, 0x57, 0x38, 0x1c, 0x40, 0x43, 0x5d, 0xe2, 0xd8, 0x36, 0x3d,
 	0x1a, 0x7e, 0x67, 0xd1, 0x3b, 0x3f, 0x3a, 0xaa, 0x0b, 0x8e, 0xaf, 0xfe, 0x06, 0x00, 0x00, 0xff,
 	0xff, 0x9b, 0x89, 0x3f, 0x6b, 0x57, 0x07, 0x00, 0x00,
+}
+
+// Reference imports to suppress errors if they are not otherwise used.
+var _ context.Context
+var _ grpc.ClientConn
+
+// This is a compile-time assertion to ensure that this generated file
+// is compatible with the grpc package it is being compiled against.
+const _ = grpc.SupportPackageIsVersion4
+
+// FreyaClient is the client API for Freya service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
+type FreyaClient interface {
+	SaveNewTemplate(ctx context.Context, in *TemplateData, opts ...grpc.CallOption) (*SaveTemplateResponse, error)
+	UpdateTemplate(ctx context.Context, in *TemplateData, opts ...grpc.CallOption) (*UpdateTemplateResponse, error)
+	GetAllTemplates(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*TemplatesList, error)
+	SendEmail(ctx context.Context, in *SendEmailParams, opts ...grpc.CallOption) (*SendEmailResponse, error)
+	SendSMS(ctx context.Context, in *SendSMSParams, opts ...grpc.CallOption) (*SendSMSResponse, error)
+}
+
+type freyaClient struct {
+	cc *grpc.ClientConn
+}
+
+func NewFreyaClient(cc *grpc.ClientConn) FreyaClient {
+	return &freyaClient{cc}
+}
+
+func (c *freyaClient) SaveNewTemplate(ctx context.Context, in *TemplateData, opts ...grpc.CallOption) (*SaveTemplateResponse, error) {
+	out := new(SaveTemplateResponse)
+	err := c.cc.Invoke(ctx, "/freya.Freya/SaveNewTemplate", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *freyaClient) UpdateTemplate(ctx context.Context, in *TemplateData, opts ...grpc.CallOption) (*UpdateTemplateResponse, error) {
+	out := new(UpdateTemplateResponse)
+	err := c.cc.Invoke(ctx, "/freya.Freya/UpdateTemplate", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *freyaClient) GetAllTemplates(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*TemplatesList, error) {
+	out := new(TemplatesList)
+	err := c.cc.Invoke(ctx, "/freya.Freya/GetAllTemplates", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *freyaClient) SendEmail(ctx context.Context, in *SendEmailParams, opts ...grpc.CallOption) (*SendEmailResponse, error) {
+	out := new(SendEmailResponse)
+	err := c.cc.Invoke(ctx, "/freya.Freya/SendEmail", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *freyaClient) SendSMS(ctx context.Context, in *SendSMSParams, opts ...grpc.CallOption) (*SendSMSResponse, error) {
+	out := new(SendSMSResponse)
+	err := c.cc.Invoke(ctx, "/freya.Freya/SendSMS", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// FreyaServer is the server API for Freya service.
+type FreyaServer interface {
+	SaveNewTemplate(context.Context, *TemplateData) (*SaveTemplateResponse, error)
+	UpdateTemplate(context.Context, *TemplateData) (*UpdateTemplateResponse, error)
+	GetAllTemplates(context.Context, *empty.Empty) (*TemplatesList, error)
+	SendEmail(context.Context, *SendEmailParams) (*SendEmailResponse, error)
+	SendSMS(context.Context, *SendSMSParams) (*SendSMSResponse, error)
+}
+
+// UnimplementedFreyaServer can be embedded to have forward compatible implementations.
+type UnimplementedFreyaServer struct {
+}
+
+func (*UnimplementedFreyaServer) SaveNewTemplate(ctx context.Context, req *TemplateData) (*SaveTemplateResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SaveNewTemplate not implemented")
+}
+func (*UnimplementedFreyaServer) UpdateTemplate(ctx context.Context, req *TemplateData) (*UpdateTemplateResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateTemplate not implemented")
+}
+func (*UnimplementedFreyaServer) GetAllTemplates(ctx context.Context, req *empty.Empty) (*TemplatesList, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAllTemplates not implemented")
+}
+func (*UnimplementedFreyaServer) SendEmail(ctx context.Context, req *SendEmailParams) (*SendEmailResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SendEmail not implemented")
+}
+func (*UnimplementedFreyaServer) SendSMS(ctx context.Context, req *SendSMSParams) (*SendSMSResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SendSMS not implemented")
+}
+
+func RegisterFreyaServer(s *grpc.Server, srv FreyaServer) {
+	s.RegisterService(&_Freya_serviceDesc, srv)
+}
+
+func _Freya_SaveNewTemplate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TemplateData)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FreyaServer).SaveNewTemplate(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/freya.Freya/SaveNewTemplate",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FreyaServer).SaveNewTemplate(ctx, req.(*TemplateData))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Freya_UpdateTemplate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TemplateData)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FreyaServer).UpdateTemplate(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/freya.Freya/UpdateTemplate",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FreyaServer).UpdateTemplate(ctx, req.(*TemplateData))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Freya_GetAllTemplates_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(empty.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FreyaServer).GetAllTemplates(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/freya.Freya/GetAllTemplates",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FreyaServer).GetAllTemplates(ctx, req.(*empty.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Freya_SendEmail_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SendEmailParams)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FreyaServer).SendEmail(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/freya.Freya/SendEmail",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FreyaServer).SendEmail(ctx, req.(*SendEmailParams))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Freya_SendSMS_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SendSMSParams)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FreyaServer).SendSMS(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/freya.Freya/SendSMS",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FreyaServer).SendSMS(ctx, req.(*SendSMSParams))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+var _Freya_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "freya.Freya",
+	HandlerType: (*FreyaServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "SaveNewTemplate",
+			Handler:    _Freya_SaveNewTemplate_Handler,
+		},
+		{
+			MethodName: "UpdateTemplate",
+			Handler:    _Freya_UpdateTemplate_Handler,
+		},
+		{
+			MethodName: "GetAllTemplates",
+			Handler:    _Freya_GetAllTemplates_Handler,
+		},
+		{
+			MethodName: "SendEmail",
+			Handler:    _Freya_SendEmail_Handler,
+		},
+		{
+			MethodName: "SendSMS",
+			Handler:    _Freya_SendSMS_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "freya.proto",
 }
